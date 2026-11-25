@@ -44,13 +44,13 @@ Each requirement has an id (e.g. `AUTH-03`) so tests, commits and conversations 
 
 | Id | Requirement | Priority | Status |
 | -- | ----------- | -------- | ------ |
-| AUTH-20 | Log in with email + password | MUST | ⬜ |
+| AUTH-20 | Log in with email + password | MUST | 🔨 |
 | AUTH-21 | Login button stays disabled until the email format is valid and the password isn't empty (D-015) | MUST | ⬜ |
 | AUTH-22 | Show/hide password toggle | MUST | ⬜ |
 | AUTH-23 | Link to Create Account. _(The mockup's link says "Sign in". Ours says "Create Account")_ | MUST | ⬜ |
-| AUTH-24 | Wrong email or password shows one generic message, "Incorrect email or password" (D-015) | MUST | ⬜ |
+| AUTH-24 | Wrong email or password shows one generic message, "Incorrect email or password" (D-015) | MUST | 🔨 |
 | AUTH-25 | A Session is a database row whose id is held in an `httpOnly` cookie. It expires 7 days after Log in (D-016) | MUST | 🔨 |
-| AUTH-26 | Log out deletes the Session and returns to Log in | MUST | ⬜ |
+| AUTH-26 | Log out deletes the Session and returns to Log in | MUST | 🔨 |
 
 ## Home Feed (screen 3)
 

@@ -123,3 +123,35 @@ Every prompt given to the AI (Claude Code, Opus 5.5) while building sociao, in o
 > Yes, commit
 
 **Response:** Committed Choose Username (sign-up step 2) as one commit. Not pushed.
+
+---
+
+## 14 · Push
+
+> Push first
+
+**Response:** Pushed `main` (4 commits) to `origin` on GitHub. This entry is committed with the next feature.
+
+---
+
+## 15 · Start Log in / Log out, test-first
+
+> Yes, write the tests
+
+**Response:** Wrote failing API tests for `POST /auth/login`, `POST /auth/logout` and `GET /auth/me`, and ran them to confirm they fail. No implementation yet.
+
+---
+
+## 16 · Approve Log in / Log out behaviour, go green
+
+> Approve, go green
+
+**Response:** Recorded D-024. Added cookie parsing, Session lookup and a `requireUser` guard. Implemented `POST /auth/login`, `POST /auth/logout` and `GET /auth/me`, and made the tests pass. Not committed.
+
+---
+
+## 17 · Manual check in Postman; approve commit
+
+> I tested the auth routes in Postman. Seems good. CommiT
+
+**Response:** Committed Log in / Log out and `GET /auth/me`, together with prompt log entries 14 to 17. Not pushed.

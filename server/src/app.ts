@@ -1,3 +1,4 @@
+import cookieParser from "cookie-parser";
 import express from "express";
 import { authRouter } from "./auth/routes.js";
 
@@ -5,6 +6,7 @@ import { authRouter } from "./auth/routes.js";
 export function createApp() {
   const app = express();
   app.use(express.json());
+  app.use(cookieParser());
 
   app.get("/health", (_req, res) => {
     res.json({ status: "ok" });

@@ -331,3 +331,22 @@ A "special character" is anything that isn't a letter, digit or whitespace.
 - `SameSite=Lax` blocks most cross-site request forgery while still allowing normal links into the app.
 - A 256-bit random id can't be guessed.
 - `Secure` (HTTPS only) would break local development over plain HTTP, so it's limited to production.
+
+---
+
+## D-024 · Log in and Log out behaviour
+
+**Date:** 2026-11-25 · **Status:** accepted
+
+**Choice:**
+- **One answer for every failed Log in.** Wrong password, unknown email, and missing or malformed fields all get `401 { error: "Incorrect email or password" }`.
+- **No timing leak.** For an unknown email, the server still checks the password against a dummy bcrypt hash, so the response takes as long as for a real account.
+- **Several Sessions per User** are allowed (one per device). Log out deletes only the current Session, returns `204`, and clears the cookie. Logging out while already logged out also returns `204`.
+- **Expired Sessions** are deleted when they're next presented. There's no background cleanup job.
+- **`GET /auth/me`** returns the logged-in User, or `401`. The `requireUser` guard behind it will protect every logged-in-only route (GEN-06).
+
+**Why:**
+- A single message, plus equal timing, stops anyone probing which emails have accounts.
+- A separate 400 for malformed input would tell the User nothing new, because the Login button is disabled until the fields are valid (D-015).
+- Per-device Sessions match how people use apps.
+- Deleting expired Sessions when they're next used is enough at this scale.

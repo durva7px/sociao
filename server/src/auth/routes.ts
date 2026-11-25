@@ -10,8 +10,15 @@ import {
   type NameFailure,
   type PasswordFailure,
 } from "./create-account.rules.js";
-import { hashPassword } from "./password.js";
-import { createSession, setSessionCookie } from "./session.js";
+import { hashPassword, verifyPassword } from "./password.js";
+import { requireUser, type AuthedLocals } from "./require-user.js";
+import {
+  SESSION_COOKIE,
+  clearSessionCookie,
+  createSession,
+  deleteSession,
+  setSessionCookie,
+} from "./session.js";
 import { suggestUsernames } from "./suggestions.js";
 import { checkUsername, type UsernameFailure } from "./username.rules.js";
 
@@ -44,6 +51,14 @@ type FieldErrors = Partial<Record<Field, string>>;
 
 /** Non-string or missing values become "" so they fail validation instead of crashing. */
 const text = (value: unknown) => (typeof value === "string" ? value : "");
+
+/** The only User fields ever sent to the client: never the password hash. */
+const publicUser = (user: { id: string; name: string; email: string; username: string }) => ({
+  id: user.id,
+  name: user.name,
+  email: user.email,
+  username: user.username,
+});
 
 interface SignupInput {
   name: string;
@@ -159,9 +174,7 @@ authRouter.post("/signup", async (req, res) => {
     });
 
     setSessionCookie(res, session.id);
-    res.status(201).json({
-      user: { id: user.id, name: user.name, email: user.email, username: user.username },
-    });
+    res.status(201).json({ user: publicUser(user) });
   } catch (error) {
     // Someone else took the email or Username between our check and the insert.
     // The database's unique constraint caught it; report it like any other "taken".
@@ -174,4 +187,41 @@ authRouter.post("/signup", async (req, res) => {
     }
     throw error;
   }
+});
+
+const INCORRECT_LOGIN = { error: "Incorrect email or password" };
+
+// Compared against when the email is unknown, so a miss takes as long as a real check
+// and response time can't reveal which emails have accounts (D-024). Created once, lazily.
+let dummyHash: Promise<string> | undefined;
+const getDummyHash = () => (dummyHash ??= hashPassword("not-a-real-password"));
+
+// Log in (AUTH-20, AUTH-24, AUTH-25): every failure gets the same 401.
+authRouter.post("/login", async (req, res) => {
+  const email = normalizeEmail(text(req.body?.email));
+  const password = text(req.body?.password);
+
+  const user = email ? await prisma.user.findUnique({ where: { email } }) : null;
+  const passwordOk = await verifyPassword(password, user?.passwordHash ?? (await getDummyHash()));
+
+  if (!user || !password || !passwordOk) {
+    res.status(401).json(INCORRECT_LOGIN);
+    return;
+  }
+
+  const session = await createSession(prisma, user.id);
+  setSessionCookie(res, session.id);
+  res.json({ user: publicUser(user) });
+});
+
+// Log out (AUTH-26): ends only this Session. Harmless when already logged out.
+authRouter.post("/logout", async (req, res) => {
+  await deleteSession(req.cookies?.[SESSION_COOKIE]);
+  clearSessionCookie(res);
+  res.status(204).end();
+});
+
+// Who is logged in? 401 if nobody (GEN-06 building block).
+authRouter.get("/me", requireUser, (_req, res: import("express").Response<unknown, AuthedLocals>) => {
+  res.json({ user: publicUser(res.locals.user) });
 });

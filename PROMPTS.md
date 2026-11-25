@@ -99,3 +99,27 @@ Every prompt given to the AI (Claude Code, Opus 5.5) while building sociao, in o
 > Yes, commit
 
 **Response:** Committed Create Account (step 1) as one commit. Not pushed.
+
+---
+
+## 11 · Start Choose Username (step 2), test-first
+
+> Yes, write the tests
+
+**Response:** Wrote failing tests only: unit tests for the Username rules, Username suggestions and password hashing, and API tests for `GET /auth/username-suggestions` and `POST /auth/signup`. Ran them to confirm they fail. Asked for a hashing library and two small rule choices before implementing.
+
+---
+
+## 12 · Approve choices, go green on Choose Username
+
+> Approve, go green
+
+**Response:** Recorded D-021 to D-023 (bcryptjs at cost 12, one-word and fallback suggestions, cookie settings). Implemented the Username rules, password hashing, Sessions, `GET /auth/username-suggestions` and `POST /auth/signup`, and made the tests pass. Not committed.
+
+---
+
+## 13 · Approve commit
+
+> Yes, commit
+
+**Response:** Committed Choose Username (sign-up step 2) as one commit. Not pushed.

@@ -24,19 +24,19 @@ Each requirement has an id (e.g. `AUTH-03`) so tests, commits and conversations 
 
 | Id | Requirement | Priority | Status |
 | -- | ----------- | -------- | ------ |
-| AUTH-01 | Sign up is two steps: (1) Create Account collects Name, email and password; (2) Choose Username. The User is created only when step 2 is submitted (D-011) | MUST | ⬜ |
-| AUTH-01a | Leaving before step 2 stores nothing in the database | MUST | ⬜ |
+| AUTH-01 | Sign up is two steps: (1) Create Account collects Name, email and password; (2) Choose Username. The User is created only when step 2 is submitted (D-011) | MUST | 🔨 |
+| AUTH-01a | Leaving before step 2 stores nothing in the database | MUST | 🔨 |
 | AUTH-02 | Email must be in a valid format (`local@domain.tld`), and is trimmed and lowercased (D-014) | MUST | 🔨 |
 | AUTH-03 | Email must be unique. A duplicate gets "An account with this email already exists", checked at step 1 and again at step 2 | MUST | 🔨 |
 | AUTH-03a | Name is 1 to 50 characters after trimming (D-014) | MUST | 🔨 |
 | AUTH-04 | Password is at least 8 characters, with at least one uppercase letter, one lowercase letter, one digit and one special character (anything that isn't a letter, digit or whitespace) | MUST | 🔨 |
 | AUTH-05 | Ignoring case, the password must not contain the Username or any Name word of 3+ letters, and must not exactly equal the email (D-013, D-019) | MUST | 🔨 |
-| AUTH-06 | Password is stored only as a hash, never as plain text | MUST | ⬜ |
-| AUTH-07 | Username is mandatory and set by the User during sign up | MUST | ⬜ |
-| AUTH-08 | Username is 3 to 30 characters of lowercase letters, digits, `_` and `.`. It starts with a letter or digit, doesn't end with `.`, and has no `..` (D-012) | MUST | ⬜ |
-| AUTH-09 | Username must be unique across all Users. If taken: "That username is taken", with fresh suggestions | MUST | ⬜ |
-| AUTH-10 | Step 2 suggests 3 available Usernames built from the Name, in the order set in D-012 | MUST | ⬜ |
-| AUTH-11 | A successful sign up logs the User in | MUST | ⬜ |
+| AUTH-06 | Password is stored only as a hash, never as plain text | MUST | 🔨 |
+| AUTH-07 | Username is mandatory and set by the User during sign up | MUST | 🔨 |
+| AUTH-08 | Username is 3 to 30 characters of lowercase letters, digits, `_` and `.`. It starts with a letter or digit, doesn't end with `.`, and has no `..` (D-012) | MUST | 🔨 |
+| AUTH-09 | Username must be unique across all Users. If taken: "That username is taken", with fresh suggestions | MUST | 🔨 |
+| AUTH-10 | Step 2 suggests 3 available Usernames built from the Name, in the order set in D-012 | MUST | 🔨 |
+| AUTH-11 | A successful sign up logs the User in | MUST | 🔨 |
 | AUTH-12 | Show/hide password toggle | MUST | ⬜ |
 | AUTH-13 | Link to Log in | MUST | ⬜ |
 
@@ -49,7 +49,7 @@ Each requirement has an id (e.g. `AUTH-03`) so tests, commits and conversations 
 | AUTH-22 | Show/hide password toggle | MUST | ⬜ |
 | AUTH-23 | Link to Create Account. _(The mockup's link says "Sign in". Ours says "Create Account")_ | MUST | ⬜ |
 | AUTH-24 | Wrong email or password shows one generic message, "Incorrect email or password" (D-015) | MUST | ⬜ |
-| AUTH-25 | A Session is a database row whose id is held in an `httpOnly` cookie. It expires 7 days after Log in (D-016) | MUST | ⬜ |
+| AUTH-25 | A Session is a database row whose id is held in an `httpOnly` cookie. It expires 7 days after Log in (D-016) | MUST | 🔨 |
 | AUTH-26 | Log out deletes the Session and returns to Log in | MUST | ⬜ |
 
 ## Home Feed (screen 3)

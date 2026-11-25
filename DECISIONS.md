@@ -284,3 +284,50 @@ A "special character" is anything that isn't a letter, digit or whitespace.
 - **Port:** a native Postgres on the development machine already listens on 5432. Prisma reached it instead of the container and failed with `P1010: access denied`. Moving the container is safer than touching the local install, and it avoids the same clash on reviewers' machines.
 - **Generator:** the older `prisma-client-js` generator couldn't resolve `@prisma/client` in this npm-workspaces layout. The newer generator writes the client into our own source tree, so imports are explicit and don't depend on how packages are hoisted.
 - **Tests:** a guarded, separate test database means tests can wipe tables freely without ever touching dev data.
+
+---
+
+## D-021 · Hash passwords with bcrypt (`bcryptjs`), cost 12
+
+**Date:** 2026-11-25 · **Status:** accepted
+
+**Choice:** Passwords are hashed with bcrypt through the pure-JavaScript `bcryptjs` package, at a cost factor of 12. All hashing goes through `server/src/auth/password.ts`, so the library can be swapped in one place.
+
+**Alternatives:** native `bcrypt`; `argon2` (the newer recommended algorithm); Node's built-in `scrypt`.
+
+**Why:**
+- **Established:** bcrypt is a long-proven password hash. Its salt is built in, and so is its cost factor.
+- **No compilers:** `bcryptjs` needs no native build step, so `npm install` works on any machine, including Windows, without build tools.
+- **Cost 12** takes a few hundred milliseconds per hash: slow enough to resist guessing, fast enough for sign-up and log-in.
+- **Not argon2:** it's stronger on paper but a native module. That's a setup risk with little benefit at this scale.
+
+---
+
+## D-022 · Username suggestions for one-word and unusable Names
+
+**Date:** 2026-11-25 · **Status:** accepted (completes D-012)
+
+**Choice:**
+- **One word,** e.g. "Gustavo": `gustavo`, `gustavo_NN`, `gustavo.NN`, `gustavoNN`, where `NN` is random digits.
+- **Too few valid candidates,** e.g. "Al" or "Ö": candidates that break the Username rules are dropped, and the server keeps adding random-digit variants until it has 3 free ones.
+- **No usable letters,** e.g. "!!!": the stem falls back to `user`.
+- **Long Names:** words are shortened so every suggestion fits within 30 characters.
+
+**Why:** Choose Username must always offer 3 valid, free options, whatever Name the User typed.
+
+---
+
+## D-023 · Session cookie settings
+
+**Date:** 2026-11-25 · **Status:** accepted (completes D-005)
+
+**Choice:**
+- **Name and value:** the cookie is `sociao_session`. Its value is a random 256-bit Session id (43 characters).
+- **Flags:** `HttpOnly`, `SameSite=Lax`, `Path=/`, and `Max-Age` of 7 days.
+- **`Secure`:** added only when `NODE_ENV=production`.
+
+**Why:**
+- `HttpOnly` stops page scripts from reading the cookie.
+- `SameSite=Lax` blocks most cross-site request forgery while still allowing normal links into the app.
+- A 256-bit random id can't be guessed.
+- `Secure` (HTTPS only) would break local development over plain HTTP, so it's limited to production.

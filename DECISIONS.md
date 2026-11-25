@@ -373,3 +373,70 @@ A "special character" is anything that isn't a letter, digit or whitespace.
 - **One source of truth:** keeping the rules on the server means they can't drift apart between two copies. The cost is a round trip before step 1 errors appear, which is acceptable for a sign-up form.
 - **Accurate labels:** they describe what each button actually does.
 - **CSS Modules:** they keep styles scoped to each screen with no extra dependency or build setup.
+
+---
+
+## D-026 · Post and Like schema; counts are computed
+
+**Date:** 2026-11-25 · **Status:** accepted
+
+**Choice:**
+- **`Post`:** `id`, `authorId`, `caption`, optional `mediaType` (`IMAGE` | `VIDEO`) and `mediaUrl`, and `createdAt`. Two database `CHECK` constraints back up the app's rules:
+  - the Caption is 1–1000 characters;
+  - `mediaType` and `mediaUrl` are both set or both empty.
+- **`Like`:** primary key `(userId, postId)`, with an index on `postId`.
+- **Computed values:** `likeCount` and `likedByMe` are never stored. Every Feed request works them out from the `Like` rows: a count, and "does a row exist for this viewer?".
+- **`User.avatarUrl`:** optional. Users without one show their initials.
+
+**Why:**
+- The composite key makes "a User can't like the same Post twice" (FEED-06) a database guarantee, not just app logic.
+- Computed counts can't drift from the real Likes, which satisfies "count is correct after refresh" (FEED-05).
+- `likedByMe` depends on who's viewing, so it can't be a column on `Post`.
+- The `CHECK` constraints keep the data valid even if a bug or a manual edit bypasses the API.
+
+**Later:** if Likes grow very large, add a cached `likeCount` on `Post`, updated in the same transaction as each Like.
+
+---
+
+## D-027 · Seed data
+
+**Date:** 2026-11-25 · **Status:** accepted
+
+**Choice:**
+- **Contents:** 6 fictional Users with names from the mockups, all with the demo password `Sociao#2024` (listed in the README). 12 Posts spread over the last few days: 4 text-only, 5 image and 3 video. Likes spread across Users, so some Posts are already liked by Gustavo.
+- **Media:** images and avatars are public stock links (`picsum.photos`, `i.pravatar.cc`). Videos come from Google's public sample-video bucket.
+- **Running it:** `npm run db:seed` clears every table and reseeds, so running it twice gives the same result.
+
+**Why:**
+- The brief requires at least 5 Users and 10 Posts covering text, image and video.
+- Stock links keep large files out of the repo, and since each Post only stores a `mediaUrl`, switching to self-hosted files is a seed-only change.
+- **Downside:** seed media needs an internet connection to load.
+
+---
+
+## D-028 · Feed API, paging, Like endpoints and unbuilt buttons
+
+**Date:** 2026-11-25 · **Status:** accepted
+
+**Choice:**
+- **`GET /feed`** is logged-in only. It returns every User's Posts, newest first (D-009), in pages of 10. Each page carries an opaque `nextCursor`, an encoded "older than this Post" marker built from `createdAt` and `id` (the id breaks ties), or `null` on the last page.
+- **Each Post** includes `id`, `caption`, `createdAt`, `media` (`{ type, url }` or `null`), `author` (`id`, `name`, `username`, `avatarUrl`), `likeCount` and `likedByMe`.
+- **`PUT /posts/:id/like`** and **`DELETE /posts/:id/like`** are both idempotent and return `{ likeCount, likedByMe }`. An unknown Post gets 404.
+- **The client** updates the heart and count instantly and rolls back if the request fails.
+- **Comment, Share, Save and the "…" menu** are shown but disabled, with no counts, until those features exist.
+
+**Why:**
+- Cursor paging stays correct while new Posts arrive, which page numbers don't.
+- Idempotent endpoints make double-taps and retries harmless.
+- An instant update makes Like feel immediate, and the rollback keeps the screen honest when the server says no.
+- Fake zeros would misrepresent features that don't exist yet.
+
+---
+
+## D-029 · Replace the seed video source
+
+**Date:** 2026-11-25 · **Status:** accepted (amends D-027)
+
+**Choice:** Seed videos now come from MDN's CC0 sample clip and test-videos.co.uk's 10-second test clips.
+
+**Why:** During the browser check, every video in Google's `gtv-videos-bucket` returned **403 Forbidden**, so the Video Posts showed nothing. The new URLs were checked and answer with real `video/mp4` content. This is a known risk of hotlinked seed media (D-027). Self-hosting the files under `server/public/seed/` remains the fallback.

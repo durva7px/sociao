@@ -179,3 +179,35 @@ Every prompt given to the AI (Claude Code, Opus 5.5) while building sociao, in o
 > Yes, commit
 
 **Response:** Committed the auth screens as one commit, leaving `.claude/launch.json` out. Not pushed.
+
+---
+
+## 21 · Next feature: seed data and Feed
+
+> Yes, seed and Feed
+
+**Response:** Before writing tests, asked one round of design questions about the Post, Like and avatar schema, seed contents and media, the Feed API shape, paging and the Like endpoints. These are data-modelling choices the brief says reviewers will look at. No code yet.
+
+---
+
+## 22 · Question: how is likedByMe maintained?
+
+> How are the posts liked by the user being maintained? likedByMe is a property in which table? How is this being coordinated with the Post model?
+
+**Response:** Explained that `likedByMe` isn't stored in any table. It's worked out on each Feed request from the `Like` table for the logged-in viewer, alongside the computed `likeCount`. Showed the schema relations and the query.
+
+---
+
+## 23 · Approve the seed and Feed design
+
+> Ok makes sense. Go ahead with the proposed solutions
+
+**Response:** Recorded D-026 to D-028. Test-first on the server: the Post and Like schema (with database check constraints), the seed script, `GET /feed` with cursor paging, and the Like / unlike endpoints. Then test-first on the client: the Feed screen with Post cards, the Like toggle (instant update, rolled back on failure), loading, empty and error states, and "load more". Seeded the dev database and checked the Feed in the browser. The check found that Google's sample-video bucket (the seed video source) now answers 403, so the videos were blank; switched to MDN and test-videos.co.uk clips and recorded D-029. Not committed.
+
+---
+
+## 24 · Approve commits
+
+> Yes, commit both
+
+**Response:** Made two commits: the server side (schema, seed, Feed and Like API) with the docs, then the client Feed screen. `.claude/` stays out. Not pushed.

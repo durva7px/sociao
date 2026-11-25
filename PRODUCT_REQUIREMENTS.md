@@ -13,9 +13,9 @@ Each requirement has an id (e.g. `AUTH-03`) so tests, commits and conversations 
 
 | Id | Requirement | Priority | Status |
 | -- | ----------- | -------- | ------ |
-| GEN-01 | Mobile-sized web app: frontend, backend API and a real database (PostgreSQL, D-017) | MUST | 🔨 |
-| GEN-02 | No hard-coded screen data. Everything comes from the database, and only seed data is loaded by a script | MUST | ⬜ |
-| GEN-03 | Seed script loads at least 5 Users and 10 Posts, covering text-only, text + image and text + video Posts | MUST | ⬜ |
+| GEN-01 | Mobile-sized web app: frontend, backend API and a real database (PostgreSQL, D-017) | MUST | ✅ |
+| GEN-02 | No hard-coded screen data. Everything comes from the database, and only seed data is loaded by a script | MUST | ✅ |
+| GEN-03 | Seed script loads at least 5 Users and 10 Posts, covering text-only, text + image and text + video Posts | MUST | ✅ |
 | GEN-04 | Loading, empty and error states on every screen we build | SHOULD | 🔨 |
 | GEN-05 | Bottom navigation (Home, Video, +, Inbox, Profile) works on every main screen | BONUS | ⬜ |
 | GEN-06 | Logged-out Users can't reach any screen except Log in and Sign up (they are redirected to Log in) | MUST | ✅ |
@@ -56,12 +56,12 @@ Each requirement has an id (e.g. `AUTH-03`) so tests, commits and conversations 
 
 | Id | Requirement | Priority | Status |
 | -- | ----------- | -------- | ------ |
-| FEED-01 | Posts load from the API | MUST | ⬜ |
-| FEED-02 | Displays text-only, text + image and text + video Posts | MUST | ⬜ |
+| FEED-01 | Posts load from the API | MUST | ✅ |
+| FEED-02 | Displays text-only, text + image and text + video Posts | MUST | ✅ |
 | FEED-03 | Which Posts appear and in what order (for now: render the seed data) | MUST | ⏸ |
-| FEED-04 | Like toggles and updates the count | MUST | ⬜ |
-| FEED-05 | A Like is saved to the database and the count is correct after a refresh | MUST | ⬜ |
-| FEED-06 | A User can't like the same Post twice | MUST | ⬜ |
+| FEED-04 | Like toggles and updates the count | MUST | ✅ |
+| FEED-05 | A Like is saved to the database and the count is correct after a refresh | MUST | ✅ |
+| FEED-06 | A User can't like the same Post twice | MUST | ✅ |
 | FEED-07 | Save toggles | MUST | ⬜ |
 | FEED-08 | Post menu (…) | MUST | ⏸ |
 | FEED-09 | Stories row (Add Story, Live badge, seen/unseen ring) | MUST | ⏸ |
@@ -71,8 +71,8 @@ Each requirement has an id (e.g. `AUTH-03`) so tests, commits and conversations 
 
 | Id | Requirement | Priority | Status |
 | -- | ----------- | -------- | ------ |
-| POST-01 | A Post has a Caption of 1 to 1000 characters | MUST | ⬜ |
-| POST-02 | A Post has optional Media: one image or one video | MUST | ⬜ |
+| POST-01 | A Post has a Caption of 1 to 1000 characters | MUST | 🔨 |
+| POST-02 | A Post has optional Media: one image or one video | MUST | 🔨 |
 | POST-03 | Create Post screen behind the + button (we design it) | BONUS | ⬜ |
 
 ## Profile (screens 7 and 8)

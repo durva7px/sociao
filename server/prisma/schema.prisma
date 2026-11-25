@@ -17,8 +17,11 @@ model User {
   email        String    @unique // always stored trimmed and lowercased (D-014)
   username     String    @unique
   passwordHash String
+  avatarUrl    String? // optional; the UI falls back to initials (D-026)
   createdAt    DateTime  @default(now())
   sessions     Session[]
+  posts        Post[]
+  likes        Like[]
 }
 
 // Proof that requests come from a logged-in User. Its id lives in an httpOnly cookie (D-005).
@@ -30,4 +33,38 @@ model Session {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+// Something a User publishes: a Caption plus optional Media (D-003, D-026).
+// Database CHECKs (added in the migration SQL): caption is 1-1000 characters,
+// and mediaType / mediaUrl are both set or both empty.
+model Post {
+  id        String     @id @default(cuid())
+  authorId  String
+  author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  caption   String
+  mediaType MediaType?
+  mediaUrl  String?
+  createdAt DateTime   @default(now())
+  likes     Like[]
+
+  @@index([createdAt, id]) // newest-first Feed paging (D-028)
+}
+
+// One User liking one Post. The composite key makes a second Like impossible (FEED-06).
+// likeCount and likedByMe are computed from these rows, never stored (D-026).
+model Like {
+  userId    String
+  postId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, postId])
+  @@index([postId])
 }

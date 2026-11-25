@@ -259,3 +259,27 @@ Every prompt given to the AI (Claude Code, Opus 5.5) while building sociao, in o
 > Yes, commit
 
 **Response:** Committed Save / bookmark as one commit, together with prompt log entries 28 to 30. `.claude/` stays out. Not pushed.
+
+---
+
+## 31 · Push
+
+> Push first
+
+**Response:** Pushed `main` to `origin` on GitHub. This entry is committed with the next change.
+
+---
+
+## 32 · README: what the app does so far
+
+> Add a section in the README before setup explaining what we have achieved in the app till now.
+
+**Response:** Added "What the app does so far" to README.md, before "Running it": what someone using the app can do, what's under the hood, and what's still to come, with a link to the detailed done / not-done list. Not committed.
+
+---
+
+## 33 · Approve commit
+
+> Yes, commit
+
+**Response:** Committed the README update together with prompt log entries 31 to 33. Not pushed.

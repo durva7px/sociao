@@ -12,6 +12,54 @@ A small social app: people publish **Posts** (a Caption with an optional image o
 
 ---
 
+## What the app does so far
+
+Every **must-have** and **should-have** in the brief is built, tested and checked in a browser. The bonus work has started with bottom navigation and Save.
+
+### For someone using it
+
+1. **Sign up in two steps.**
+   - **Create Account:** Name, email and a password. The password rules are listed up front, and errors appear under the field they belong to.
+   - **Choose Username:** pick one of 3 suggestions built from your name, or type your own.
+   - Nothing is stored until both steps are done, and finishing logs you straight in.
+2. **Log in and out.**
+   - The Login button stays disabled until the email looks valid and a password is typed.
+   - The password can be shown or hidden.
+   - A wrong email or password gets one clear message.
+   - You stay logged in across reloads for 7 days. Log out ends only that device's Session.
+3. **Read the Feed.**
+   - Every User's Posts, newest first: text only, text with a photo, and text with a playable video.
+   - Each Post shows the Author's avatar (or their initials) and how long ago it was posted.
+   - More Posts load as you scroll.
+4. **Like and Save Posts.**
+   - Both respond instantly, are stored on the server, survive a refresh, and can't be doubled by tapping twice.
+   - If the server can't be reached, they flip back and say so.
+   - Saves are private, so no count is shown.
+5. **Visit Profiles.**
+   - **Your own:** from the bottom navigation.
+   - **Anyone's:** by tapping their Username in the Feed.
+   - **What a Profile shows:** Name, @Username, bio, and real Following / Followers / Posts counts.
+   - **Three tabs:** your Posts, a two-column grid of your videos with View counts, and a Tag tab (empty for now).
+6. **Follow and unfollow other Users** from their Profile, with the counts updating at once.
+7. **Get around with the bottom navigation** (Home and Profile). Every screen has loading, empty and error states, with a way to retry.
+
+### Under the hood
+
+- **A real Postgres database.** The rules that matter are enforced by the database itself, not just the code: one Like, Save or Follow per pair, no following yourself, Caption and bio lengths, and complete media.
+- **Counts can't drift.** Likes, Followers and the rest are counted from the rows on each request instead of being stored as numbers that could fall out of sync.
+- **Safe sign-in.**
+  - **Passwords:** only ever stored as bcrypt hashes.
+  - **Sessions:** live in the database and travel in an `httpOnly` cookie.
+  - **No account probing:** Log in gives the same answer, in the same time, whether the email exists or not.
+- **Seed data in one command.** It loads 6 demo Users with Posts, Likes, Saves and Follows, and re-running it leaves your own accounts alone.
+- **About 280 automated tests.**
+  - The server tests run against a real test database, including double-taps and two people grabbing the same Username at once.
+  - The screen tests cover every flow above.
+
+Still to come: Create Post, the Video viewer and Comments, Messages, Settings, Edit Profile, and the Followers / Following lists. See [What's done and what isn't](#whats-done-and-what-isnt) for the full list.
+
+---
+
 ## Running it
 
 **You need:** Node 22+, npm 10+, and Docker Desktop (for Postgres).

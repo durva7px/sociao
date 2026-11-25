@@ -155,3 +155,27 @@ Every prompt given to the AI (Claude Code, Opus 5.5) while building sociao, in o
 > I tested the auth routes in Postman. Seems good. CommiT
 
 **Response:** Committed Log in / Log out and `GET /auth/me`, together with prompt log entries 14 to 17. Not pushed.
+
+---
+
+## 18 · Next feature: auth screens
+
+> Auth screens
+
+**Response:** Wrote failing screen tests (React Testing Library) for Log in, Create Account, Choose Username, the logged-out redirect and Log out. Installed `react-router` and `@testing-library/user-event` so the tests can run. Ran them to confirm they fail, and listed the UI choices to approve before implementing.
+
+---
+
+## 19 · Approve UI choices, go green on the auth screens
+
+> Approve, go green
+
+**Response:** Recorded D-025. Built the client API module, auth state, the Log in, Create Account, Choose Username and placeholder Home screens, the route guards and CSS Modules styling, and made the screen tests pass. Checked the full flow in the browser (sign up, reload, log out, wrong password, log in). Found that Create Account kept a field's error after it was edited; added a failing test, then fixed it. Not committed.
+
+---
+
+## 20 · Approve commit
+
+> Yes, commit
+
+**Response:** Committed the auth screens as one commit, leaving `.claude/launch.json` out. Not pushed.

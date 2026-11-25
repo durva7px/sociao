@@ -350,3 +350,26 @@ A "special character" is anything that isn't a letter, digit or whitespace.
 - A separate 400 for malformed input would tell the User nothing new, because the Login button is disabled until the fields are valid (D-015).
 - Per-device Sessions match how people use apps.
 - Deleting expired Sessions when they're next used is enough at this scale.
+
+---
+
+## D-025 · Auth screens: routing, labels, where the rules live, styling
+
+**Date:** 2026-11-25 · **Status:** accepted
+
+**Choice:**
+1. **Libraries:** `react-router` for screens and redirects. `@testing-library/user-event` lets tests type and click like a person.
+2. **Label fixes to the mockups:**
+   - Log in's password field is "Password" (the mockup says "Create Password").
+   - Log in's sign-up link reads "Create Account" (the mockup says "Sign in").
+   - Step 1's button is **Continue**, because nothing is created yet. Step 2's button is **Create Account**.
+3. **The server is the only judge of sign-up rules.** The client lists the password rules as text and shows the server's per-field messages. The only check the client makes itself is the Log in button's (valid email, non-empty password; D-015).
+4. **Username input** lowercases as you type.
+5. **Step-1 details** live in React memory (a context) only: never in local storage, session storage or the history state. Back keeps them, and a refresh loses them (D-011).
+6. **Placeholder Home** with the mockup's "Social" heading and a temporary Log out button. Log out moves to Settings, and the Feed replaces the placeholder later.
+7. **Styling** uses CSS Modules (built into Vite), shared CSS variables for colours and spacing, and a layout capped at phone width.
+
+**Why:**
+- **One source of truth:** keeping the rules on the server means they can't drift apart between two copies. The cost is a round trip before step 1 errors appear, which is acceptable for a sign-up form.
+- **Accurate labels:** they describe what each button actually does.
+- **CSS Modules:** they keep styles scoped to each screen with no extra dependency or build setup.

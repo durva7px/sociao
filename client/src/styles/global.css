@@ -1,0 +1,56 @@
+/* Design tokens taken from the mockups. Every screen uses these, never raw values. */
+:root {
+  --color-bg: #f7f7f7;
+  --color-surface: #ffffff;
+  --color-text: #1a1a1a;
+  --color-muted: #6b6b6b;
+  --color-placeholder: #a3a3a3;
+  --color-border: #ebebeb;
+  --color-primary: #111111;
+  --color-on-primary: #ffffff;
+  --color-disabled-bg: #efefef;
+  --color-disabled-text: #b5b5b5;
+  --color-link: #2f5be8;
+  --color-error: #d23b3b;
+  --color-error-bg: #fdeeee;
+
+  --radius-field: 14px;
+  --radius-pill: 999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --phone-width: 430px;
+
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+/* The app is a phone-sized column, centred on wider screens. */
+#root {
+  max-width: var(--phone-width);
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: var(--color-bg);
+}
+
+button,
+input {
+  font: inherit;
+}

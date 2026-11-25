@@ -46,4 +46,20 @@ describe("seed (GEN-03, D-027)", () => {
 
     expect({ users: await prisma.user.count(), posts: await prisma.post.count(), likes: await prisma.like.count() }).toEqual(before);
   }, 60_000);
+
+  it("leaves Users that aren't seed Users alone, with their Posts and Sessions (D-030)", async () => {
+    const realUser = await prisma.user.create({
+      data: { name: "Real Person", email: "real@mail.com", username: "real.person", passwordHash: "x" },
+    });
+    const post = await prisma.post.create({ data: { authorId: realUser.id, caption: "Mine" } });
+    await prisma.session.create({
+      data: { id: "real-session-id", userId: realUser.id, expiresAt: new Date(Date.now() + 60_000) },
+    });
+
+    await seed(prisma);
+
+    expect(await prisma.user.findUnique({ where: { id: realUser.id } })).not.toBeNull();
+    expect(await prisma.post.findUnique({ where: { id: post.id } })).not.toBeNull();
+    expect(await prisma.session.findUnique({ where: { id: "real-session-id" } })).not.toBeNull();
+  }, 60_000);
 });

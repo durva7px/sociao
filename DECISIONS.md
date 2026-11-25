@@ -440,3 +440,16 @@ A "special character" is anything that isn't a letter, digit or whitespace.
 **Choice:** Seed videos now come from MDN's CC0 sample clip and test-videos.co.uk's 10-second test clips.
 
 **Why:** During the browser check, every video in Google's `gtv-videos-bucket` returned **403 Forbidden**, so the Video Posts showed nothing. The new URLs were checked and answer with real `video/mp4` content. This is a known risk of hotlinked seed media (D-027). Self-hosting the files under `server/public/seed/` remains the fallback.
+
+---
+
+## D-030 · Seed resets only its own data
+
+**Date:** 2026-11-25 · **Status:** accepted (amends D-027)
+
+**Choice:** `npm run db:seed` deletes and recreates only the seed Users, which it recognises by their `@sociao.test` emails. Their Posts, Likes and Sessions go with them through the cascades. Every other User, and everything they created, is kept. Running it twice still gives the same seed data.
+
+**Why:**
+- Clearing every table (D-027) deleted an account made through Sign up, which then showed up as "incorrect email or password" at Log in. The seed should never destroy data it didn't create.
+- **Downside:** a real User's Likes on seed Posts are lost on each re-seed, because those Posts are recreated. Keeping them would mean upserting Posts in place, which isn't worth the extra code for demo data.
+- **Edge case:** if a real User has taken a seed Username, such as `gustavo.levin` with a different email, the seed stops with a unique-constraint error and doesn't overwrite them.

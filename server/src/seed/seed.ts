@@ -27,6 +27,9 @@ const USERS = [
 
 type Username = (typeof USERS)[number]["username"];
 
+/** Seed Users are recognised by this email, so a re-seed touches only them (D-030). */
+const seedEmail = (u: { username: string }) => `${u.username}@sociao.test`;
+
 interface SeedPost {
   author: Username;
   caption: string;
@@ -119,11 +122,9 @@ const POSTS: SeedPost[] = [
 ];
 
 export async function seed(db: PrismaClient) {
-  // Children first; cascades would cover it, but explicit is clearer.
-  await db.like.deleteMany();
-  await db.post.deleteMany();
-  await db.session.deleteMany();
-  await db.user.deleteMany();
+  // Reset only the seed's own Users (D-030). Their Posts, Likes and Sessions cascade with them.
+  // Everyone else stays. Their Likes on seed Posts go, since those Posts are recreated.
+  await db.user.deleteMany({ where: { email: { in: USERS.map(seedEmail) } } });
 
   // bcrypt is slow on purpose, so hash the shared demo password once.
   const passwordHash = await hashPassword(DEMO_PASSWORD);
@@ -134,7 +135,7 @@ export async function seed(db: PrismaClient) {
       data: {
         name: u.name,
         username: u.username,
-        email: `${u.username}@sociao.test`,
+        email: seedEmail(u),
         avatarUrl: u.avatarUrl,
         passwordHash,
       },

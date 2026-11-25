@@ -211,3 +211,11 @@ Every prompt given to the AI (Claude Code, Opus 5.5) while building sociao, in o
 > Yes, commit both
 
 **Response:** Made two commits: the server side (schema, seed, Feed and Like API) with the docs, then the client Feed screen. `.claude/` stays out. Not pushed.
+
+---
+
+## 25 · README, then Profile
+
+> README, then Profile
+
+**Response:** Wrote README.md (how to run, demo accounts, schema with a diagram, API, tests, done / not done) and added root scripts for migrating and seeding. Checked the setup commands. Then asked a design round for the Profile screens.

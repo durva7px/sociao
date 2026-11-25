@@ -18,10 +18,13 @@ model User {
   username     String    @unique
   passwordHash String
   avatarUrl    String? // optional; the UI falls back to initials (D-026)
+  bio          String? // optional, at most 150 characters (CHECK in migration, D-031)
   createdAt    DateTime  @default(now())
   sessions     Session[]
   posts        Post[]
   likes        Like[]
+  following    Follow[]  @relation("follower") // Follows this User made
+  followers    Follow[]  @relation("followee") // Follows pointing at this User
 }
 
 // Proof that requests come from a logged-in User. Its id lives in an httpOnly cookie (D-005).
@@ -50,6 +53,7 @@ model Post {
   caption   String
   mediaType MediaType?
   mediaUrl  String?
+  viewCount Int        @default(0) // only meaningful for Video Posts (D-031); CHECK >= 0
   createdAt DateTime   @default(now())
   likes     Like[]
 
@@ -67,4 +71,17 @@ model Like {
 
   @@id([userId, postId])
   @@index([postId])
+}
+
+// One User following another (D-031). One-way: following back is a second row.
+// The composite key stops double-following; a CHECK in the migration stops self-follows.
+model Follow {
+  followerId String
+  followeeId String
+  follower   User     @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followee   User     @relation("followee", fields: [followeeId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@id([followerId, followeeId])
+  @@index([followeeId])
 }

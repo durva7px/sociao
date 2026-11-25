@@ -2,7 +2,7 @@ import type { PrismaClient } from "../generated/prisma/client.js";
 import { hashPassword } from "../auth/password.js";
 
 // Demo data for development and reviewers (GEN-03, D-027).
-// Wipes every table first, so running it twice gives the same result.
+// Resets only its own Users (D-030), so running it twice gives the same result.
 // All seed Users share DEMO_PASSWORD, which is documented in the README.
 
 export const DEMO_PASSWORD = "Sociao#2024";
@@ -17,12 +17,12 @@ const VIDEOS = {
 };
 
 const USERS = [
-  { name: "Gustavo Levin", username: "gustavo.levin", avatarUrl: avatar(12) },
-  { name: "Marilyn Torff", username: "marilyn.torff", avatarUrl: avatar(47) },
-  { name: "Lindsey Septimus", username: "lindsey.septimus", avatarUrl: avatar(45) },
-  { name: "Livia Botosh", username: "livia.botosh", avatarUrl: avatar(44) },
-  { name: "Drake Morgan", username: "drake.morgan", avatarUrl: avatar(33) },
-  { name: "Randy Vetrovs", username: "randy.vetrovs", avatarUrl: avatar(53) },
+  { name: "Gustavo Levin", username: "gustavo.levin", avatarUrl: avatar(12), bio: "Building things, filming trips and chasing good light. 💪" },
+  { name: "Marilyn Torff", username: "marilyn.torff", avatarUrl: avatar(47), bio: "Sunsets, slow mornings and too many books." },
+  { name: "Lindsey Septimus", username: "lindsey.septimus", avatarUrl: avatar(45), bio: "Home cook. Plant parent. Learning one recipe at a time. 🌿" },
+  { name: "Livia Botosh", username: "livia.botosh", avatarUrl: avatar(44), bio: "Markets on Sundays, deadlines on Mondays." },
+  { name: "Drake Morgan", username: "drake.morgan", avatarUrl: avatar(33), bio: "Trail runner. Coffee first, then miles." },
+  { name: "Randy Vetrovs", username: "randy.vetrovs", avatarUrl: avatar(53), bio: null },
 ] as const;
 
 type Username = (typeof USERS)[number]["username"];
@@ -36,6 +36,7 @@ interface SeedPost {
   minutesAgo: number;
   media?: { type: "IMAGE" | "VIDEO"; url: string };
   likedBy: Username[];
+  viewCount?: number; // Video Posts only (D-031)
 }
 
 const POSTS: SeedPost[] = [
@@ -64,6 +65,7 @@ const POSTS: SeedPost[] = [
     caption: "Weekend trail run, 12 km. Legs say no, brain says yes.",
     minutesAgo: 180,
     media: { type: "VIDEO", url: VIDEOS.flower },
+    viewCount: 8_450,
     likedBy: ["gustavo.levin", "livia.botosh", "randy.vetrovs", "marilyn.torff", "lindsey.septimus"],
   },
   {
@@ -90,6 +92,7 @@ const POSTS: SeedPost[] = [
     caption: "Quick edit from last month's trip. Mountains hit different. 🏔️",
     minutesAgo: 1_440,
     media: { type: "VIDEO", url: VIDEOS.jellyfish },
+    viewCount: 1_450,
     likedBy: ["marilyn.torff", "drake.morgan", "livia.botosh"],
   },
   {
@@ -110,6 +113,7 @@ const POSTS: SeedPost[] = [
     caption: "Studio session tonight. Something new is coming. 🎧",
     minutesAgo: 3_600,
     media: { type: "VIDEO", url: VIDEOS.bunny },
+    viewCount: 12_800,
     likedBy: ["gustavo.levin", "drake.morgan"],
   },
   {
@@ -119,6 +123,22 @@ const POSTS: SeedPost[] = [
     media: { type: "IMAGE", url: image("market-haul") },
     likedBy: ["marilyn.torff", "randy.vetrovs", "gustavo.levin"],
   },
+];
+
+/** Who follows whom (D-031). One-way, so following back is listed separately. */
+const FOLLOWS: [follower: Username, followee: Username][] = [
+  ["gustavo.levin", "marilyn.torff"],
+  ["gustavo.levin", "lindsey.septimus"],
+  ["gustavo.levin", "drake.morgan"],
+  ["marilyn.torff", "gustavo.levin"],
+  ["lindsey.septimus", "gustavo.levin"],
+  ["livia.botosh", "gustavo.levin"],
+  ["drake.morgan", "gustavo.levin"],
+  ["randy.vetrovs", "gustavo.levin"],
+  ["marilyn.torff", "livia.botosh"],
+  ["lindsey.septimus", "marilyn.torff"],
+  ["drake.morgan", "randy.vetrovs"],
+  ["livia.botosh", "marilyn.torff"],
 ];
 
 export async function seed(db: PrismaClient) {
@@ -137,6 +157,7 @@ export async function seed(db: PrismaClient) {
         username: u.username,
         email: seedEmail(u),
         avatarUrl: u.avatarUrl,
+        bio: u.bio,
         passwordHash,
       },
     });
@@ -151,11 +172,16 @@ export async function seed(db: PrismaClient) {
         caption: p.caption,
         mediaType: p.media?.type,
         mediaUrl: p.media?.url,
+        viewCount: p.viewCount ?? 0,
         createdAt: new Date(now - p.minutesAgo * 60_000),
         likes: { create: p.likedBy.map((username) => ({ userId: ids[username] })) },
       },
     });
   }
+
+  await db.follow.createMany({
+    data: FOLLOWS.map(([follower, followee]) => ({ followerId: ids[follower], followeeId: ids[followee] })),
+  });
 
   return { users: USERS.length, posts: POSTS.length };
 }

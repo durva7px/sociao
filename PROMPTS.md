@@ -219,3 +219,19 @@ Every prompt given to the AI (Claude Code, Opus 5.5) while building sociao, in o
 > README, then Profile
 
 **Response:** Wrote README.md (how to run, demo accounts, schema with a diagram, API, tests, done / not done) and added root scripts for migrating and seeding. Checked the setup commands. Then asked a design round for the Profile screens.
+
+---
+
+## 26 · Approve the Profile design
+
+> Approved
+
+**Response:** Picked up the developer's own change (D-030: the seed resets only its own Users) and built on it. Recorded D-031 and D-032. Test-first on the server: the Follow model, `bio`, `viewCount`, `GET /users/:username`, `GET /users/:username/posts` and Follow / Unfollow. Test-first on the client: the Profile screen (Post, Video and Tag tabs), other Users' Profiles with Follow, links from Feed Authors, the bottom navigation and count formatting. Moved the Feed's paging and Post shape into a shared helper, so the Profile tabs reuse them. The full suite was flaky: the seed test file sometimes skipped all its tests. The cause was a new Profile test leaving a `gustavo.levin` User in the shared test database, which hit the D-030 edge case. Fixed by resetting the test database before seeding, and confirmed with 4 clean runs in a row. Checked Profile, the Video tab and Follow / Unfollow in the browser. Updated the README. Not committed.
+
+---
+
+## 27 · Approve commits
+
+> Yes, commit both
+
+**Response:** Made two commits: the server side of Profile (Follow model, Profile and Follow API, seed Follows) with the docs, then the client (Profile screen, Follow toggle, bottom navigation). `.claude/` stays out. Not pushed.

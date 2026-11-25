@@ -1,6 +1,6 @@
 # Sociao
 
-A small social app: people publish **Posts** (a Caption with an optional image or video), see everyone's Posts in a **Feed**, and **Like** them. It's built from the brief *AI-First Engineer: Live Build Assignment* as a mobile-sized web app with a real backend and database, test-first and one feature at a time, with every prompt kept in [PROMPTS.md](PROMPTS.md).
+A small social app: people publish **Posts** (a Caption with an optional image or video), see everyone's Posts in a **Feed**, **Like** them, and **Follow** each other from their **Profiles**. It's built from the brief *AI-First Engineer: Live Build Assignment* as a mobile-sized web app with a real backend and database, test-first and one feature at a time, with every prompt kept in [PROMPTS.md](PROMPTS.md).
 
 | Doc | What it answers |
 | --- | --- |
@@ -48,7 +48,7 @@ Every seeded User has the password **`Sociao#2024`**. The email is the Username 
 | Drake Morgan | `drake.morgan@sociao.test` |
 | Randy Vetrovs | `randy.vetrovs@sociao.test` |
 
-Log in as Gustavo to see some Posts already liked. Seed images, avatars and videos are public stock links, so they need an internet connection (D-027, D-029).
+Log in as Gustavo to see some Posts already liked and a Profile with Followers. Seed images, avatars and videos are public stock links, so they need an internet connection (D-027, D-029).
 
 ### Tests
 
@@ -83,6 +83,8 @@ erDiagram
     User ||--o{ Post : "writes"
     User ||--o{ Like : "gives"
     Post ||--o{ Like : "receives"
+    User ||--o{ Follow : "follows (as follower)"
+    User ||--o{ Follow : "is followed (as followee)"
 
     User {
         string id PK
@@ -91,6 +93,7 @@ erDiagram
         string username UK "a-z 0-9 _ . (3-30)"
         string passwordHash "bcrypt, never plain text"
         string avatarUrl "optional"
+        string bio "optional; CHECK at most 150 chars"
         datetime createdAt
     }
     Session {
@@ -105,11 +108,17 @@ erDiagram
         string caption "CHECK 1-1000 chars"
         enum mediaType "IMAGE or VIDEO, optional"
         string mediaUrl "optional; CHECK set together with mediaType"
+        int viewCount "videos only; CHECK >= 0"
         datetime createdAt "indexed with id for paging"
     }
     Like {
         string userId PK, FK
         string postId PK, FK "indexed"
+        datetime createdAt
+    }
+    Follow {
+        string followerId PK, FK
+        string followeeId PK, FK "indexed; CHECK not the follower"
         datetime createdAt
     }
 ```
@@ -118,8 +127,15 @@ How it fits together:
 
 - **A Like is a row, not a number.** Its primary key `(userId, postId)` makes the database itself reject a second Like by the same User on the same Post (FEED-06).
 - **Counts are worked out, not stored.** The Feed computes `likeCount` (count the Like rows) and `likedByMe` (does a row exist for this viewer?) on every request. They can never drift out of sync, so the count is right after a refresh (FEED-05). `likedByMe` depends on who is looking, so it couldn't be a column on Post anyway (D-026).
-- **Two `CHECK` constraints** sit in the migration SQL, because Prisma's schema language can't express them: a Caption is 1–1000 characters, and `mediaType` and `mediaUrl` are both set or both empty. They hold even if the API is bypassed.
-- **Deleting cascades:** deleting a User deletes their Sessions, Posts and Likes. Deleting a Post deletes its Likes.
+- **A Follow is also a row,** keyed by `(followerId, followeeId)`. It's one-way, so following back is a second row. Follower, Following and Post counts are computed the same way as Likes (D-031).
+- **A View count is a counter on Post**, not rows, because one person can watch a video many times (D-031).
+- **`CHECK` constraints** sit in the migration SQL, because Prisma's schema language can't express them. They hold even if the API is bypassed:
+  - a Caption is 1–1000 characters;
+  - `mediaType` and `mediaUrl` are both set or both empty;
+  - a bio is at most 150 characters;
+  - `viewCount` can't be negative;
+  - no one can follow themselves.
+- **Deleting cascades:** deleting a User deletes their Sessions, Posts, Likes and Follows (in both directions). Deleting a Post deletes its Likes.
 - **Sign up creates the User and their first Session in one transaction,** so neither exists without the other (D-011).
 
 ## API
@@ -137,6 +153,10 @@ All routes are JSON. Routes marked 🔒 need a valid Session cookie and otherwis
 | `GET /feed?cursor=` 🔒 | Posts newest first, 10 per page, with `nextCursor` |
 | `PUT /posts/:id/like` 🔒 | Like (repeating it changes nothing) → `{ likeCount, likedByMe }` |
 | `DELETE /posts/:id/like` 🔒 | Unlike (repeating it changes nothing) → `{ likeCount, likedByMe }` |
+| `GET /users/:username` 🔒 | Profile, the three counts, `followedByMe` and `isMe` |
+| `GET /users/:username/posts?type=all\|video&cursor=` 🔒 | A User's Posts or videos, the same shape and paging as the Feed |
+| `PUT /users/:username/follow` 🔒 | Follow (repeating it changes nothing; following yourself gets 400) → `{ counts, followedByMe }` |
+| `DELETE /users/:username/follow` 🔒 | Unfollow (repeating it changes nothing) → `{ counts, followedByMe }` |
 
 ---
 
@@ -158,14 +178,24 @@ Status per requirement id is in [PRODUCT_REQUIREMENTS.md](PRODUCT_REQUIREMENTS.m
   - Like and unlike update instantly, are saved, survive a refresh, and can't be doubled.
   - Loading, empty and error states.
 
+**Done: the should-haves**
+
+- **Profile** (screens 7 and 8):
+  - Your own Profile at `/profile`, and anyone's at `/u/:username` (tap an Author in the Feed).
+  - Name, Username, bio, and real Following / Followers / Posts counts.
+  - Follow / Unfollow updates instantly and rolls back if it fails.
+  - Post tab with Likes; Video tab as a two-column grid with View counts; Tag tab as an empty state.
+- **Loading, empty and error states** on every screen built so far.
+- **Bottom navigation** (Home and Profile work; Video, + and Inbox are disabled until built).
+
 **Not done yet**
 
-- **Should-have:** Profile (screens 7 and 8).
 - **Feed details:** Save/bookmark, the Post "…" menu, the Stories row, Notifications and Messages. Comment, Share, Save and "…" are shown disabled rather than faked.
 - **Bonus screens 4–6 and 9–13:**
   - Video viewer, Comments sheet, Messages inbox and Chat thread.
   - Edit Profile and Settings.
-  - Followers and Following lists, plus bottom navigation and Create Post.
+  - Followers and Following lists, and Create Post behind the + button.
+- **View counting:** the counts are seed data until the Video viewer records views.
 - **Temporary Log out:** it's an icon in the Feed header until Settings exists.
 
 **Deviations from the mockups** (the brief asks us to decide and say so):

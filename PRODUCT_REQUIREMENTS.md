@@ -17,7 +17,7 @@ Each requirement has an id (e.g. `AUTH-03`) so tests, commits and conversations 
 | GEN-02 | No hard-coded screen data. Everything comes from the database, and only seed data is loaded by a script | MUST | ✅ |
 | GEN-03 | Seed script loads at least 5 Users and 10 Posts, covering text-only, text + image and text + video Posts | MUST | ✅ |
 | GEN-04 | Loading, empty and error states on every screen we build | SHOULD | 🔨 |
-| GEN-05 | Bottom navigation (Home, Video, +, Inbox, Profile) works on every main screen | BONUS | ⬜ |
+| GEN-05 | Bottom navigation (Home, Video, +, Inbox, Profile) works on every main screen | BONUS | 🔨 |
 | GEN-06 | Logged-out Users can't reach any screen except Log in and Sign up (they are redirected to Log in) | MUST | ✅ |
 
 ## Auth: Sign up (screen 2, "Create Account")
@@ -79,11 +79,11 @@ Each requirement has an id (e.g. `AUTH-03`) so tests, commits and conversations 
 
 | Id | Requirement | Priority | Status |
 | -- | ----------- | -------- | ------ |
-| PROF-01 | Shows the signed-in User's real Name, Username and bio | SHOULD | ⬜ |
-| PROF-02 | Following, Followers and Posts counts | SHOULD | ⬜ |
-| PROF-03 | Post tab lists the User's own Posts | SHOULD | ⬜ |
-| PROF-04 | Video tab: two-column grid of the User's Video Posts with View counts | SHOULD | ⬜ |
-| PROF-05 | Tag tab can be an empty state | SHOULD | ⬜ |
+| PROF-01 | Shows the signed-in User's real Name, Username and bio | SHOULD | ✅ |
+| PROF-02 | Following, Followers and Posts counts | SHOULD | ✅ |
+| PROF-03 | Post tab lists the User's own Posts | SHOULD | ✅ |
+| PROF-04 | Video tab: two-column grid of the User's Video Posts with View counts (counts are seeded; counting real views comes with the Video viewer) | SHOULD | ✅ |
+| PROF-05 | Tag tab can be an empty state | SHOULD | ✅ |
 
 ## Bonus screens
 

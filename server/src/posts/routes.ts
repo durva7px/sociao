@@ -2,87 +2,28 @@ import { Router, type Response } from "express";
 import { prisma } from "../db.js";
 import { Prisma } from "../generated/prisma/client.js";
 import { requireUser, type AuthedLocals } from "../auth/require-user.js";
+import { InvalidCursorError, postPage } from "./post-page.js";
 
 // The Feed and Likes (FEED-01 to FEED-06, D-026, D-028). Every route here needs a logged-in User.
-
-const PAGE_SIZE = 10;
 
 // requireUser is applied per route, so unknown paths still get a normal 404.
 export const postsRouter = Router();
 
 type Res = Response<unknown, AuthedLocals>;
 
-// ---------- Cursor: an opaque "older than this Post" marker ----------
-
-interface Cursor {
-  createdAt: Date;
-  id: string;
-}
-
-function encodeCursor(post: { createdAt: Date; id: string }): string {
-  return Buffer.from(JSON.stringify({ c: post.createdAt.toISOString(), i: post.id })).toString("base64url");
-}
-
-/** null when the cursor is malformed, so the route can answer 400. */
-function decodeCursor(raw: string): Cursor | null {
-  try {
-    const { c, i } = JSON.parse(Buffer.from(raw, "base64url").toString("utf8"));
-    const createdAt = new Date(c);
-    if (typeof i !== "string" || typeof c !== "string" || Number.isNaN(createdAt.getTime())) return null;
-    return { createdAt, id: i };
-  } catch {
-    return null;
-  }
-}
-
 // ---------- GET /feed ----------
 
+// Every User's Posts for now (D-009).
 postsRouter.get("/feed", requireUser, async (req, res: Res) => {
-  const me = res.locals.user;
-
-  let cursor: Cursor | null = null;
-  if (typeof req.query.cursor === "string") {
-    cursor = decodeCursor(req.query.cursor);
-    if (!cursor) {
+  try {
+    res.json(await postPage({ viewerId: res.locals.user.id, cursor: req.query.cursor }));
+  } catch (error) {
+    if (error instanceof InvalidCursorError) {
       res.status(400).json({ error: "Invalid cursor" });
       return;
     }
+    throw error;
   }
-
-  // Newest first; id breaks ties so Posts with the same timestamp are never repeated or skipped.
-  const posts = await prisma.post.findMany({
-    where: cursor
-      ? {
-          OR: [
-            { createdAt: { lt: cursor.createdAt } },
-            { createdAt: cursor.createdAt, id: { lt: cursor.id } },
-          ],
-        }
-      : undefined,
-    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-    take: PAGE_SIZE + 1, // one extra tells us whether another page exists
-    include: {
-      author: { select: { id: true, name: true, username: true, avatarUrl: true } },
-      _count: { select: { likes: true } }, // -> likeCount
-      likes: { where: { userId: me.id }, select: { userId: true } }, // -> likedByMe
-    },
-  });
-
-  const page = posts.slice(0, PAGE_SIZE);
-  const hasMore = posts.length > PAGE_SIZE;
-
-  res.json({
-    posts: page.map((post) => ({
-      id: post.id,
-      caption: post.caption,
-      createdAt: post.createdAt.toISOString(),
-      media: post.mediaType && post.mediaUrl ? { type: post.mediaType, url: post.mediaUrl } : null,
-      author: post.author,
-      likeCount: post._count.likes,
-      likedByMe: post.likes.length > 0,
-    })),
-    nextCursor: hasMore ? encodeCursor(page[page.length - 1]) : null,
-  });
 });
 
 // ---------- PUT / DELETE /posts/:id/like ----------

@@ -2,11 +2,15 @@ import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createApp } from "../app.js";
 import { prisma } from "../db.js";
+import { resetDb } from "../test/helpers.js";
 import { DEMO_PASSWORD, seed } from "./seed.js";
 
 // GEN-03: the seed script loads at least 5 Users and 10 Posts covering text, image and video.
 
 beforeAll(async () => {
+  // Start from an empty test database: other test files may leave a User holding a seed
+  // Username (e.g. gustavo.levin with a non-seed email), which the seed refuses to overwrite (D-030).
+  await resetDb();
   await seed(prisma);
 }, 60_000);
 afterAll(() => prisma.$disconnect());
@@ -29,6 +33,15 @@ describe("seed (GEN-03, D-027)", () => {
 
     const gustavo = await prisma.user.findUniqueOrThrow({ where: { username: "gustavo.levin" } });
     expect(await prisma.like.count({ where: { userId: gustavo.id } })).toBeGreaterThan(0);
+  });
+
+  it("gives Users bios and Follows, and video Posts View counts (D-031)", async () => {
+    expect(await prisma.user.count({ where: { bio: { not: null } } })).toBeGreaterThan(0);
+    expect(await prisma.follow.count()).toBeGreaterThan(0);
+    expect(await prisma.post.count({ where: { mediaType: "VIDEO", viewCount: { gt: 0 } } })).toBeGreaterThan(0);
+
+    const followers = await prisma.user.findMany({ select: { _count: { select: { followers: true } } } });
+    expect(new Set(followers.map((u) => u._count.followers)).size).toBeGreaterThan(1);
   });
 
   it("creates Users who can log in with the documented demo password", async () => {

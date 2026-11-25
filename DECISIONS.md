@@ -453,3 +453,49 @@ A "special character" is anything that isn't a letter, digit or whitespace.
 - Clearing every table (D-027) deleted an account made through Sign up, which then showed up as "incorrect email or password" at Log in. The seed should never destroy data it didn't create.
 - **Downside:** a real User's Likes on seed Posts are lost on each re-seed, because those Posts are recreated. Keeping them would mean upserting Posts in place, which isn't worth the extra code for demo data.
 - **Edge case:** if a real User has taken a seed Username, such as `gustavo.levin` with a different email, the seed stops with a unique-constraint error and doesn't overwrite them.
+
+---
+
+## D-031 · Follow, bio and View count
+
+**Date:** 2026-11-25 · **Status:** accepted
+
+**Choice:**
+- **`Follow`:** primary key `(followerId, followeeId)`, plus a `createdAt` time. A database `CHECK` stops a User following themselves, and an index on `followeeId` keeps Follower counts fast. Follower, Following and Post counts are computed from the rows, like Likes (D-026).
+- **`User.bio`:** optional, at most 150 characters (`CHECK`).
+- **`Post.viewCount`:** a counter, default 0. It's returned only for Video Posts.
+- **Seed:** gives Users bios, Follows between them, and realistic View counts.
+
+**Why:**
+- A Follow is one-per-pair, so the composite key makes double-following impossible at the database level.
+- A view isn't one-per-User (people re-watch), so a counter is the right shape there, unlike Likes.
+- Increasing `viewCount` when someone watches belongs to the Video viewer (bonus screen 4).
+
+---
+
+## D-032 · Profile screens, API, bottom navigation and count format
+
+**Date:** 2026-11-25 · **Status:** accepted
+
+**Choice:**
+- **Routes:**
+  - `/profile` is your own Profile.
+  - `/u/:username` is anyone's, reached by tapping an Author in the Feed.
+  - Other people's Profiles have Follow / Unfollow, which updates instantly and rolls back if the request fails.
+- **API (all logged-in only):**
+  - `GET /users/:username` returns `{ user, counts: { followers, following, posts }, followedByMe, isMe }`.
+  - `GET /users/:username/posts?type=all|video&cursor=` uses the same shape and paging as the Feed.
+  - `PUT` / `DELETE /users/:username/follow` are idempotent and return the new counts. Following yourself gets 400, and an unknown Username gets 404.
+- **Tabs:**
+  - **Post:** Feed cards, Likes included.
+  - **Video:** a two-column grid with View counts.
+  - **Tag:** an empty state.
+- **Bottom navigation** (Home | Video | + | Inbox | Profile) on every main screen. Home and Profile work; the rest are disabled until built.
+- **Counts:** under 10,000 they're shown in full with separators ("1,450"); from 10,000 up they're shortened ("12.8k", "1.2m").
+- **Not built yet, shown disabled:** the settings gear (screen 11) and the tappable Follower / Following counts (screens 12 and 13).
+
+**Why:**
+- Following needs a place to happen, and other Users' Profiles are that place.
+- The bottom navigation is the natural way into Profile, and every later screen needs it.
+- Reusing the Feed's Post shape and paging means one serializer and one set of tests.
+- English number style matches the Feed. The mockup's "12,8k" is European style.

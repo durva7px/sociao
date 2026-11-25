@@ -1,0 +1,260 @@
+# Decisions — sociao
+
+Each decision records what we chose, the alternatives, and why. Newest at the bottom. A decision is changed by adding a new entry that supersedes it, never by editing the old one.
+
+---
+
+## D-001 · Mobile-sized web app, full stack
+
+**Date:** 2026-11-25 · **Status:** accepted
+
+**Choice:** A web app laid out for a phone-width screen, with a frontend, a backend API and a real database.
+
+**Alternatives:** A native or React Native mobile app, or a frontend talking to a backend-as-a-service.
+
+**Why:** The brief allows either a mobile app or a mobile-sized web app. A web app runs in any browser with no emulator or app store, which makes it easier to build, test and review. Keeping a separate backend and database makes the data model and API visible, and the brief says those are assessed.
+
+---
+
+## D-002 · Follow the assignment brief as the source of requirements
+
+**Date:** 2026-11-25 · **Status:** accepted
+
+**Choice:** Requirements come from the brief and are tracked in [PRODUCT_REQUIREMENTS.md](PRODUCT_REQUIREMENTS.md). The mockups are a design brief. Where they're unclear or wrong, we decide, record it here, and tell the reviewers.
+
+**Why:** The submission is graded against the brief.
+
+---
+
+## D-003 · A Post is a Caption with optional Media
+
+**Date:** 2026-11-25 · **Status:** accepted (supersedes the earlier "Media required" idea)
+
+**Choice:** Every Post has a Caption of 1 to 1000 characters and optionally one piece of Media (an image or a video).
+
+**Alternatives:** Media required on every Post.
+
+**Why:** The brief's Feed must show text-only, text + image and text + video Posts, and D-002 makes the brief the source of truth. The 1000-character Caption limit is our own choice. It's long enough for real captions and short enough to keep Feed cards readable.
+
+---
+
+## D-004 · TypeScript end to end, with Prisma
+
+**Date:** 2026-11-25 · **Status:** accepted (database engine still open)
+
+**Choice:**
+- **Frontend:** React with Vite.
+- **Backend:** Node with Express.
+- **Database layer:** Prisma.
+- **Tests:** Vitest, Supertest for the API, and React Testing Library for screens.
+- **Language:** TypeScript throughout.
+
+**Alternatives:** Next.js as a single full-stack framework; Python (FastAPI) or Go for the backend; raw SQL or Drizzle instead of Prisma.
+
+**Why:**
+- **One language** across frontend, backend and tests, so the shapes of API data can be shared and every file reads the same way.
+- **React + Vite** is a light, fast setup for a mobile-sized single-page app.
+- **Express** is minimal and well known, so there's little framework behaviour to explain.
+- **Prisma** gives us a readable schema file to show reviewers, generated TypeScript types, migrations and a built-in seeding hook (which covers GEN-03).
+- **Vitest** has the same API on the frontend and backend, so there's one test runner to learn.
+
+---
+
+## D-005 · Sessions stored in the database, identified by an httpOnly cookie
+
+**Date:** 2026-11-25 · **Status:** accepted
+
+**Choice:** Logging in creates a `Session` row in the database. Its random id is sent to the browser in an `httpOnly` cookie, and each request looks the Session up. Log out deletes the row.
+
+**Alternatives:** A signed token (JWT) in a cookie or in browser storage.
+
+**Why:**
+- **Easier to manage:** Log out and revoking access are just deleting a row. A JWT stays valid until it expires unless we build a deny-list.
+- **Safer:** an `httpOnly` cookie can't be read by JavaScript, which protects the Session from injected scripts.
+- **Easy to explain:** the Session is plainly visible in the schema.
+- **Cost:** one extra database lookup per request, which is negligible at this scale.
+
+---
+
+## D-006 · Password rules
+
+**Date:** 2026-11-25 · **Status:** accepted (exact containment rule still open)
+
+**Choice:** A password is at least 8 characters, with at least one uppercase letter, one lowercase letter, one digit and one special character. It must not contain the User's Username, email or Name. It's stored only as a hash.
+
+**Why:** The brief asks us to define password rules. The character mix guards against short, simple passwords. Banning a User's own identifiers stops the most guessable passwords (like `Gustavo.levin1!`), which pass a pure character-mix check. Hashing is required by the brief.
+
+---
+
+## D-007 · Username chosen at sign up, with 3 suggestions
+
+**Date:** 2026-11-25 · **Status:** accepted (length and placement still open)
+
+**Choice:** Username is a required part of sign up. The app suggests 3 available Usernames based on the User's first and last name, and the User can pick one or type their own. Usernames are unique and use only lowercase letters, digits, `_` and `.`.
+
+**Alternatives:** Generate the Username automatically and let the User change it later.
+
+**Why:** Usernames appear across the app (Profile, Feed, Followers), so the User should choose theirs rather than inherit a generated one. Offering suggestions keeps the choice quick and cuts the effort of inventing a unique name. Allowing only lowercase means uniqueness can't be fooled by case (`Gustavo` vs `gustavo`).
+
+**Deviation from the mockup:** the Create Account mockup has no Username field. We add one and will tell the reviewers.
+
+---
+
+## D-008 · Test-driven development, one feature at a time
+
+**Date:** 2026-11-25 · **Status:** accepted
+
+**Choice:** Each feature starts with failing tests, then the code that makes them pass. Tests cover the essential behaviour (auth rules, Post interactions such as Like and Save). Nothing is built, committed or pushed without the developer's approval.
+
+**Why:** Tests pin the brief's rules down precisely (for example "a User can't like the same Post twice") and show reviewers that the code was checked rather than pasted. Going one feature at a time keeps each commit small and reviewable, which the brief asks for.
+
+---
+
+## D-009 · Feed contents deferred
+
+**Date:** 2026-11-25 · **Status:** accepted for now
+
+**Choice:** For now the Feed renders the seed data. Which Posts appear and in what order will be decided later.
+
+**Why:** It lets us build the Feed screen and Likes without settling the Follow model first.
+
+---
+
+## D-010 · Separate documents for context, vocabulary, requirements, decisions and prompts
+
+**Date:** 2026-11-25 · **Status:** accepted
+
+**Choice:**
+- `CONTEXT.md`: what and why.
+- `UBIQUITOUS_LANGUAGE.md`: the words we use.
+- `PRODUCT_REQUIREMENTS.md`: what must be built.
+- `DECISIONS.md`: why we chose what we chose.
+- `PROMPTS.md`: every prompt, verbatim.
+
+**Why:** Each file answers one question, so it stays short and easy to keep current. `PROMPTS.md` is a deliverable required by the brief.
+
+---
+
+## D-011 · Sign up is two steps, and the User is created only at the end
+
+**Date:** 2026-11-25 · **Status:** accepted (refines D-007)
+
+**Choice:** Sign up runs in two steps:
+1. **Create Account:** Name, email and password. The server checks them (email format and not already used, Password rules except the Username check) **without saving anything**.
+2. **Choose Username:** pick one of the 3 suggestions or type one. Only then does the client send all four fields in a single request. The server re-checks everything, including that the password doesn't contain the Username, creates the User, and logs them in.
+
+If the User leaves before step 2, nothing is stored. The step-1 values live only in the browser's memory, never in local storage, because they include the password.
+
+**Alternatives:** A Username field on the same form; or saving a "pending" User after step 1.
+
+**Why:** It's the developer's choice. It keeps the Create Account screen as the mockup shows it and makes the Username its own deliberate step. Creating the User only in the final request means no half-registered Users can exist. The server re-checks at step 2 because a client could skip step 1, and the email might have been taken in the meantime.
+
+**Trade-offs:**
+- Refreshing the page during step 2 loses the step-1 values, so the User starts again.
+- If the password contains the chosen Username, step 2 says so. The User can pick another Username or go back and change the password.
+
+---
+
+## D-012 · Username shape and suggestions
+
+**Date:** 2026-11-25 · **Status:** accepted (completes D-007)
+
+**Rules:**
+- 3 to 30 characters.
+- Only lowercase letters, digits, `_` and `.`.
+- Starts with a letter or digit.
+- Doesn't end with `.`.
+- No `..`.
+- Unique.
+
+**Suggestions**, e.g. for "Gustavo Levin", in this order:
+1. `gustavo.levin`
+2. `gustavo_levin`
+3. `gustavolevin`
+4. `glevin`
+5. `gustavo.levin` plus 2 random digits
+
+The server returns the first 3 that are free. Accented letters are converted to plain ones (é → e), and other characters are dropped. A one-word Name gets `.`, `_` and digit variants.
+
+**Why:** These rules block look-alike names (`.gus`, `gus..levin`) and keep Usernames safe inside URLs. Suggestions are only useful if they're actually available, so the server checks them against the database.
+
+---
+
+## D-013 · Exact password containment rule and special characters
+
+**Date:** 2026-11-25 · **Status:** accepted (completes D-006)
+
+**Choice:** Comparisons ignore case. A password is rejected if it contains:
+- the Username;
+- the part of the email before `@`;
+- any word of the Name that's 3 or more letters long.
+
+A "special character" is anything that isn't a letter, digit or whitespace.
+
+**Why:** A precise rule is testable. Skipping Name words shorter than 3 letters ("Al", "Li") avoids rejecting many reasonable passwords over a tiny match.
+
+---
+
+## D-014 · Email and Name handling
+
+**Date:** 2026-11-25 · **Status:** accepted
+
+**Choice:**
+- **Email:** trimmed and lowercased before it's stored or compared, and validated with a simple `local@domain.tld` check.
+- **Name:** 1 to 50 characters after trimming. One word is allowed.
+
+**Why:** Lowercasing stops `Gus@Mail.com` and `gus@mail.com` becoming two accounts. A strict standards-level email parser rejects real addresses and adds nothing for this app.
+
+---
+
+## D-015 · Log in: when the button turns on, and the error messages
+
+**Date:** 2026-11-25 · **Status:** accepted
+
+**Choice:**
+- **Login button:** enabled when the email format is valid and the password isn't empty. The full Password rules apply only at sign up.
+- **Log in errors:** wrong email *or* wrong password gives one message, "Incorrect email or password".
+- **Sign up errors:** these are specific ("An account with this email already exists", "That username is taken", plus fresh suggestions).
+
+**Why:** Applying the Password rules at Log in would reveal the rules and could lock out older accounts. A single Log in message stops anyone probing which emails are registered. Sign up has to reveal a duplicate email anyway: the brief requires it to be handled.
+
+---
+
+## D-016 · Sessions last 7 days
+
+**Date:** 2026-11-25 · **Status:** accepted (completes D-005)
+
+**Choice:** A Session expires 7 days after Log in, and Log out deletes it immediately. There's no "remember me".
+
+**Why:** It's long enough not to annoy the User and short enough to limit the damage if a cookie leaks. Expiry is just a timestamp on the Session row.
+
+---
+
+## D-017 · PostgreSQL in Docker; npm workspaces
+
+**Date:** 2026-11-25 · **Status:** accepted (completes D-004)
+
+**Choice:**
+- **Database:** PostgreSQL, run locally with `docker compose`. The test suite uses a separate test database.
+- **Repo layout:** one repo with npm workspaces: `server/` (Express, Prisma, API tests) and `client/` (React, Vite, screen tests).
+
+**Alternatives:** SQLite; a hosted Postgres; separate repos.
+
+**Why:**
+- **Postgres** is the production-grade choice: real concurrency, strict constraints (e.g. a database-level unique `(userId, postId)` rule for Likes) and the same engine in development and production.
+- **Docker** means reviewers don't have to install Postgres; `docker compose up` is enough.
+- **Workspaces** keep the frontend and backend apart but let them share one install and one `npm test`.
+
+---
+
+## D-018 · Pin Prisma to stable 7.x, using the `pg` driver adapter
+
+**Date:** 2026-11-25 · **Status:** accepted
+
+**Choice:** The `prisma` CLI and `@prisma/client` are both pinned to `^7.10.1`. The database URL is in `server/prisma.config.ts`, not in `schema.prisma`, and the app connects through `@prisma/adapter-pg`.
+
+**Why:**
+- A plain `npm install prisma` picked `8.0.0-rc.35`, a release candidate that doesn't match the 7.x client. We stay on stable releases and keep the CLI and client versions together.
+- Prisma 7 requires the URL in its config file and a driver adapter in the client.
+
+**Known issue:** `npm audit` reports a high-severity ReDoS in `effect`, which comes in through `@prisma/config`. It's a dependency of the Prisma CLI (a development tool), not of the running app, and the only "fix" offered is downgrading to Prisma 6. We accept it and will check again before submitting.

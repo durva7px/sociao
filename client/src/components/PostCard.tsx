@@ -1,4 +1,6 @@
+import { Link } from "react-router";
 import type { FeedPost } from "../api/feed";
+import { formatCount } from "../utils/format-count";
 import { relativeTime } from "../utils/relative-time";
 import { Avatar } from "./Avatar";
 import { BookmarkIcon, CommentIcon, HeartIcon, MoreIcon, ShareIcon } from "./icons";
@@ -14,13 +16,17 @@ interface PostCardProps {
 /** One Post in the Feed: Author, time, Caption, optional Media and the action row (screen 3). */
 export function PostCard({ post, onToggleLike, likeError }: PostCardProps) {
   const { author } = post;
+  const profilePath = `/u/${encodeURIComponent(author.username)}`;
 
   return (
     <article className={styles.card} aria-label={`Post by ${author.username}`}>
       <header className={styles.header}>
         <Avatar name={author.name} username={author.username} url={author.avatarUrl} />
         <div className={styles.byline}>
-          <span className={styles.username}>{author.username}</span>
+          {/* The Username leads to the Author's Profile (D-032). */}
+          <Link to={profilePath} className={styles.username}>
+            {author.username}
+          </Link>
           <time className={styles.time} dateTime={post.createdAt}>
             {relativeTime(post.createdAt)}
           </time>
@@ -51,7 +57,7 @@ export function PostCard({ post, onToggleLike, likeError }: PostCardProps) {
           onClick={() => onToggleLike(post)}
         >
           <HeartIcon filled={post.likedByMe} />
-          <span>{post.likeCount.toLocaleString("en-US")}</span>
+          <span>{formatCount(post.likeCount)}</span>
         </button>
         {/* Not built yet: shown disabled and without fake counts (D-028). */}
         <button type="button" className={styles.pill} aria-label="Comment" disabled>

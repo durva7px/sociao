@@ -16,6 +16,8 @@ export interface FeedPost {
   author: FeedAuthor;
   likeCount: number;
   likedByMe: boolean;
+  /** Only on Video Posts (D-031). */
+  viewCount?: number;
 }
 
 export interface FeedPage {

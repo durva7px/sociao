@@ -1,0 +1,58 @@
+/* Fixed to the bottom of the phone-width column. */
+.nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--phone-width);
+  height: var(--nav-height);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: center;
+  padding: 0 var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  z-index: 10;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: var(--space-2) 0;
+  border: none;
+  background: none;
+  color: #8a8a8a;
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.item:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.active {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.create {
+  justify-self: center;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 44px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  box-shadow: 0 0 0 8px #f2f2f2;
+}
+
+.create:disabled {
+  cursor: not-allowed;
+}

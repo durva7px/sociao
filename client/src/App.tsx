@@ -6,6 +6,7 @@ import { ChooseUsernameScreen } from "./screens/ChooseUsernameScreen";
 import { CreateAccountScreen } from "./screens/CreateAccountScreen";
 import { FeedScreen } from "./screens/FeedScreen";
 import { LoginScreen } from "./screens/LoginScreen";
+import { ProfileScreen } from "./screens/ProfileScreen";
 import styles from "./screens/Auth.module.css";
 
 interface AppProps {
@@ -46,6 +47,8 @@ function AppRoutes() {
       <Route path="/signup" element={<LoggedOutOnly><CreateAccountScreen /></LoggedOutOnly>} />
       <Route path="/signup/username" element={<LoggedOutOnly><ChooseUsernameScreen /></LoggedOutOnly>} />
       <Route path="/" element={<LoggedInOnly><FeedScreen /></LoggedInOnly>} />
+      <Route path="/profile" element={<LoggedInOnly><ProfileScreen /></LoggedInOnly>} />
+      <Route path="/u/:username" element={<LoggedInOnly><ProfileScreen /></LoggedInOnly>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

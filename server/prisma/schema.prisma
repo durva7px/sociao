@@ -1,0 +1,10 @@
+// Database schema. Models are added feature by feature, test-first.
+// Prisma 7: the connection URL lives in prisma.config.ts, not here.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}

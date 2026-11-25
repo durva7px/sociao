@@ -1,0 +1,15 @@
+{
+  "name": "sociao",
+  "private": true,
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev:server": "npm run dev -w server",
+    "dev:client": "npm run dev -w client",
+    "test": "npm test --workspaces",
+    "typecheck": "npm run typecheck --workspaces",
+    "db:up": "docker compose up -d"
+  }
+}

@@ -53,6 +53,7 @@ describe("GET /feed", () => {
         },
         likeCount: 0,
         likedByMe: false,
+        savedByMe: false,
       },
     ]);
   });

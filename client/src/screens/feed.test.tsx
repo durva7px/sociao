@@ -20,6 +20,7 @@ function post(overrides: Partial<FeedPost> & { id: string }): FeedPost {
     author: marilyn,
     likeCount: 0,
     likedByMe: false,
+    savedByMe: false,
     ...overrides,
   };
 }
@@ -115,12 +116,12 @@ describe("Feed: Post cards (FEED-01, FEED-02)", () => {
     expect(within(card("Golden hour from the balcony")).getByText("1,450")).toBeInTheDocument();
   });
 
-  it("shows Comment, Share, Save and the menu as not yet available (D-028)", async () => {
+  it("shows Comment, Share and the menu as not yet available (D-028)", async () => {
     renderApp("/");
     await screen.findByText("Golden hour from the balcony");
     const c = card("Golden hour from the balcony");
 
-    for (const name of ["Comment", "Share", "Save", "More options"]) {
+    for (const name of ["Comment", "Share", "More options"]) {
       expect(within(c).getByRole("button", { name })).toBeDisabled();
     }
   });
@@ -186,6 +187,65 @@ describe("Feed: Like toggle (FEED-04, FEED-05, D-028)", () => {
 
     expect(feedApi.likePost).toHaveBeenCalledTimes(1);
     expect(feedApi.unlikePost).not.toHaveBeenCalled();
+  });
+});
+
+describe("Feed: Save toggle (FEED-07, D-033)", () => {
+  it("saves a Post: the bookmark fills at once, with no count shown", async () => {
+    let finish!: (v: { savedByMe: boolean }) => void;
+    vi.mocked(feedApi.savePost).mockReturnValue(new Promise((r) => (finish = r)));
+    const { user } = renderApp("/");
+    await screen.findByText("Trail run");
+    const c = card("Trail run");
+
+    expect(within(c).getByRole("button", { name: "Save" })).toHaveAttribute("aria-pressed", "false");
+    await user.click(within(c).getByRole("button", { name: "Save" }));
+
+    expect(within(c).getByRole("button", { name: "Save" })).toHaveAttribute("aria-pressed", "true");
+    expect(feedApi.savePost).toHaveBeenCalledWith("p3");
+    expect(within(c).getByRole("button", { name: "Save" })).toHaveTextContent("");
+
+    finish({ savedByMe: true });
+    await waitFor(() => expect(within(c).getByRole("button", { name: "Save" })).toHaveAttribute("aria-pressed", "true"));
+  });
+
+  it("unsaves a Post that's already saved", async () => {
+    vi.mocked(feedApi.getFeed).mockResolvedValue({ posts: [{ ...videoPost, savedByMe: true }], nextCursor: null });
+    vi.mocked(feedApi.unsavePost).mockResolvedValue({ savedByMe: false });
+    const { user } = renderApp("/");
+    await screen.findByText("Trail run");
+    const c = card("Trail run");
+
+    await user.click(within(c).getByRole("button", { name: "Save" }));
+
+    expect(feedApi.unsavePost).toHaveBeenCalledWith("p3");
+    expect(within(c).getByRole("button", { name: "Save" })).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("rolls back if the Save can't be stored", async () => {
+    vi.mocked(feedApi.savePost).mockRejectedValue(new Error("network down"));
+    const { user } = renderApp("/");
+    await screen.findByText("Trail run");
+    const c = card("Trail run");
+
+    await user.click(within(c).getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(within(c).getByRole("button", { name: "Save" })).toHaveAttribute("aria-pressed", "false"));
+    expect(within(c).getByRole("alert")).toHaveTextContent(/couldn't save/i);
+  });
+
+  it("ignores extra taps while a Save is still being stored, and leaves Like alone", async () => {
+    vi.mocked(feedApi.savePost).mockReturnValue(new Promise(() => {}));
+    const { user } = renderApp("/");
+    await screen.findByText("Trail run");
+    const c = card("Trail run");
+
+    await user.click(within(c).getByRole("button", { name: "Save" }));
+    await user.click(within(c).getByRole("button", { name: "Save" }));
+
+    expect(feedApi.savePost).toHaveBeenCalledTimes(1);
+    expect(feedApi.unsavePost).not.toHaveBeenCalled();
+    expect(within(c).getByRole("button", { name: "Like" })).toHaveAttribute("aria-pressed", "false");
   });
 });
 

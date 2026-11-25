@@ -23,6 +23,7 @@ model User {
   sessions     Session[]
   posts        Post[]
   likes        Like[]
+  saves        Save[]
   following    Follow[]  @relation("follower") // Follows this User made
   followers    Follow[]  @relation("followee") // Follows pointing at this User
 }
@@ -56,6 +57,7 @@ model Post {
   viewCount Int        @default(0) // only meaningful for Video Posts (D-031); CHECK >= 0
   createdAt DateTime   @default(now())
   likes     Like[]
+  saves     Save[]
 
   @@index([createdAt, id]) // newest-first Feed paging (D-028)
 }
@@ -84,4 +86,17 @@ model Follow {
 
   @@id([followerId, followeeId])
   @@index([followeeId])
+}
+
+// A User's private bookmark of a Post (FEED-07, D-033). Same shape as Like:
+// the composite key stops double-saving, and savedByMe is computed from these rows.
+model Save {
+  userId    String
+  postId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, postId])
+  @@index([postId])
 }

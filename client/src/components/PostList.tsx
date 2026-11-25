@@ -40,7 +40,13 @@ export function PostList({ list, loadingText, emptyText, children }: PostListPro
       {children
         ? children(list)
         : list.posts.map((post) => (
-            <PostCard key={post.id} post={post} onToggleLike={list.toggleLike} likeError={list.likeErrors[post.id]} />
+            <PostCard
+              key={post.id}
+              post={post}
+              onToggleLike={list.toggleLike}
+              onToggleSave={list.toggleSave}
+              error={list.errors[post.id]}
+            />
           ))}
 
       {list.nextCursor && <LoadMore onLoad={list.loadMore} loading={list.loadingMore} failed={list.moreError} />}

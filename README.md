@@ -83,6 +83,8 @@ erDiagram
     User ||--o{ Post : "writes"
     User ||--o{ Like : "gives"
     Post ||--o{ Like : "receives"
+    User ||--o{ Save : "bookmarks"
+    Post ||--o{ Save : "is saved in"
     User ||--o{ Follow : "follows (as follower)"
     User ||--o{ Follow : "is followed (as followee)"
 
@@ -116,6 +118,11 @@ erDiagram
         string postId PK, FK "indexed"
         datetime createdAt
     }
+    Save {
+        string userId PK, FK
+        string postId PK, FK "indexed"
+        datetime createdAt
+    }
     Follow {
         string followerId PK, FK
         string followeeId PK, FK "indexed; CHECK not the follower"
@@ -127,6 +134,7 @@ How it fits together:
 
 - **A Like is a row, not a number.** Its primary key `(userId, postId)` makes the database itself reject a second Like by the same User on the same Post (FEED-06).
 - **Counts are worked out, not stored.** The Feed computes `likeCount` (count the Like rows) and `likedByMe` (does a row exist for this viewer?) on every request. They can never drift out of sync, so the count is right after a refresh (FEED-05). `likedByMe` depends on who is looking, so it couldn't be a column on Post anyway (D-026).
+- **A Save is a row too,** with the same shape as a Like. It's private, so Post lists only carry `savedByMe` and never a count (D-033).
 - **A Follow is also a row,** keyed by `(followerId, followeeId)`. It's one-way, so following back is a second row. Follower, Following and Post counts are computed the same way as Likes (D-031).
 - **A View count is a counter on Post**, not rows, because one person can watch a video many times (D-031).
 - **`CHECK` constraints** sit in the migration SQL, because Prisma's schema language can't express them. They hold even if the API is bypassed:
@@ -153,6 +161,8 @@ All routes are JSON. Routes marked 🔒 need a valid Session cookie and otherwis
 | `GET /feed?cursor=` 🔒 | Posts newest first, 10 per page, with `nextCursor` |
 | `PUT /posts/:id/like` 🔒 | Like (repeating it changes nothing) → `{ likeCount, likedByMe }` |
 | `DELETE /posts/:id/like` 🔒 | Unlike (repeating it changes nothing) → `{ likeCount, likedByMe }` |
+| `PUT /posts/:id/save` 🔒 | Save (repeating it changes nothing) → `{ savedByMe }` |
+| `DELETE /posts/:id/save` 🔒 | Unsave (repeating it changes nothing) → `{ savedByMe }` |
 | `GET /users/:username` 🔒 | Profile, the three counts, `followedByMe` and `isMe` |
 | `GET /users/:username/posts?type=all\|video&cursor=` 🔒 | A User's Posts or videos, the same shape and paging as the Feed |
 | `PUT /users/:username/follow` 🔒 | Follow (repeating it changes nothing; following yourself gets 400) → `{ counts, followedByMe }` |
@@ -176,6 +186,7 @@ Status per requirement id is in [PRODUCT_REQUIREMENTS.md](PRODUCT_REQUIREMENTS.m
 - **Home Feed** (screen 3):
   - Posts come from the API in pages.
   - Like and unlike update instantly, are saved, survive a refresh, and can't be doubled.
+  - Save / bookmark works the same way, and stays private (no count shown).
   - Loading, empty and error states.
 
 **Done: the should-haves**
@@ -190,7 +201,7 @@ Status per requirement id is in [PRODUCT_REQUIREMENTS.md](PRODUCT_REQUIREMENTS.m
 
 **Not done yet**
 
-- **Feed details:** Save/bookmark, the Post "…" menu, the Stories row, Notifications and Messages. Comment, Share, Save and "…" are shown disabled rather than faked.
+- **Feed details:** the Post "…" menu, the Stories row, Notifications and Messages, and a list of your saved Posts. Comment, Share and "…" are shown disabled rather than faked.
 - **Bonus screens 4–6 and 9–13:**
   - Video viewer, Comments sheet, Messages inbox and Chat thread.
   - Edit Profile and Settings.

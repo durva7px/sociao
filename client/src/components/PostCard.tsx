@@ -9,12 +9,13 @@ import styles from "./PostCard.module.css";
 interface PostCardProps {
   post: FeedPost;
   onToggleLike: (post: FeedPost) => void;
-  /** Set when the last Like change failed and was rolled back. */
-  likeError?: string;
+  onToggleSave: (post: FeedPost) => void;
+  /** Set when the last Like or Save change failed and was rolled back. */
+  error?: string;
 }
 
 /** One Post in the Feed: Author, time, Caption, optional Media and the action row (screen 3). */
-export function PostCard({ post, onToggleLike, likeError }: PostCardProps) {
+export function PostCard({ post, onToggleLike, onToggleSave, error }: PostCardProps) {
   const { author } = post;
   const profilePath = `/u/${encodeURIComponent(author.username)}`;
 
@@ -66,14 +67,21 @@ export function PostCard({ post, onToggleLike, likeError }: PostCardProps) {
         <button type="button" className={styles.pill} aria-label="Share" disabled>
           <ShareIcon />
         </button>
-        <button type="button" className={`${styles.iconButton} ${styles.save}`} aria-label="Save" disabled>
-          <BookmarkIcon />
+        {/* Saves are private, so no count is shown (D-033). */}
+        <button
+          type="button"
+          className={`${styles.iconButton} ${styles.save}`}
+          aria-label="Save"
+          aria-pressed={post.savedByMe}
+          onClick={() => onToggleSave(post)}
+        >
+          <BookmarkIcon filled={post.savedByMe} />
         </button>
       </footer>
 
-      {likeError && (
+      {error && (
         <p role="alert" className={styles.error}>
-          {likeError}
+          {error}
         </p>
       )}
     </article>

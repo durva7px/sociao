@@ -16,6 +16,8 @@ export interface FeedPost {
   author: FeedAuthor;
   likeCount: number;
   likedByMe: boolean;
+  /** Private: only ever true for the viewer's own Saves (D-033). */
+  savedByMe: boolean;
   /** Only on Video Posts (D-031). */
   viewCount?: number;
 }
@@ -49,4 +51,16 @@ export function likePost(postId: string): Promise<LikeState> {
 
 export function unlikePost(postId: string): Promise<LikeState> {
   return json(`/posts/${encodeURIComponent(postId)}/like`, { method: "DELETE" });
+}
+
+export interface SaveState {
+  savedByMe: boolean;
+}
+
+export function savePost(postId: string): Promise<SaveState> {
+  return json(`/posts/${encodeURIComponent(postId)}/save`, { method: "PUT" });
+}
+
+export function unsavePost(postId: string): Promise<SaveState> {
+  return json(`/posts/${encodeURIComponent(postId)}/save`, { method: "DELETE" });
 }

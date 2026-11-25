@@ -37,9 +37,9 @@ export function ShareIcon() {
   );
 }
 
-export function BookmarkIcon() {
+export function BookmarkIcon({ filled = false }: { filled?: boolean }) {
   return (
-    <svg {...base}>
+    <svg {...base} fill={filled ? "currentColor" : "none"}>
       <path d="M6 3h12v18l-6-4-6 4V3Z" />
     </svg>
   );

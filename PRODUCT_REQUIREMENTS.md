@@ -62,7 +62,7 @@ Each requirement has an id (e.g. `AUTH-03`) so tests, commits and conversations 
 | FEED-04 | Like toggles and updates the count | MUST | ✅ |
 | FEED-05 | A Like is saved to the database and the count is correct after a refresh | MUST | ✅ |
 | FEED-06 | A User can't like the same Post twice | MUST | ✅ |
-| FEED-07 | Save toggles | MUST | ⬜ |
+| FEED-07 | Save toggles | MUST | ✅ |
 | FEED-08 | Post menu (…) | MUST | ⏸ |
 | FEED-09 | Stories row (Add Story, Live badge, seen/unseen ring) | MUST | ⏸ |
 | FEED-10 | Notifications and Messages icons in the header | MUST | ⏸ |

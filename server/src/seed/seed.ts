@@ -179,6 +179,13 @@ export async function seed(db: PrismaClient) {
     });
   }
 
+  // A few Posts Gustavo has saved, so filled bookmarks show when logging in as him (D-033).
+  const saved = await db.post.findMany({
+    where: { authorId: { in: [ids["marilyn.torff"], ids["drake.morgan"], ids["lindsey.septimus"]] }, mediaType: { not: null } },
+    select: { id: true },
+  });
+  await db.save.createMany({ data: saved.map((p) => ({ userId: ids["gustavo.levin"], postId: p.id })) });
+
   await db.follow.createMany({
     data: FOLLOWS.map(([follower, followee]) => ({ followerId: ids[follower], followeeId: ids[followee] })),
   });

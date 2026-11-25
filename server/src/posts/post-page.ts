@@ -2,7 +2,7 @@ import { prisma } from "../db.js";
 import type { Prisma } from "../generated/prisma/client.js";
 
 // One page of Posts in the shape every list uses: the Feed and a Profile's Post and Video tabs (D-028, D-032).
-// likeCount and likedByMe are worked out from the Like rows for the viewer (D-026).
+// likeCount, likedByMe and savedByMe are worked out from the Like and Save rows for the viewer (D-026, D-033).
 
 export const PAGE_SIZE = 10;
 
@@ -63,6 +63,7 @@ export async function postPage(opts: { viewerId: string; where?: Prisma.PostWher
       author: { select: { id: true, name: true, username: true, avatarUrl: true } },
       _count: { select: { likes: true } }, // -> likeCount
       likes: { where: { userId: opts.viewerId }, select: { userId: true } }, // -> likedByMe
+      saves: { where: { userId: opts.viewerId }, select: { userId: true } }, // -> savedByMe (private, D-033)
     },
   });
 
@@ -78,6 +79,7 @@ export async function postPage(opts: { viewerId: string; where?: Prisma.PostWher
       author: post.author,
       likeCount: post._count.likes,
       likedByMe: post.likes.length > 0,
+      savedByMe: post.saves.length > 0,
       // View counts only mean something for videos (D-031).
       ...(post.mediaType === "VIDEO" ? { viewCount: post.viewCount } : {}),
     })),

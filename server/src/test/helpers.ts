@@ -3,9 +3,10 @@ import { prisma } from "../db.js";
 
 // Shared set-up for API tests: make Users, log them in without bcrypt, wipe the database.
 
-/** Deletes everything. Users cascade to their Posts, Likes, Follows and Sessions. */
+/** Deletes everything. Users cascade to their Posts, Likes, Saves, Follows and Sessions. */
 export async function resetDb() {
   await prisma.follow.deleteMany();
+  await prisma.save.deleteMany();
   await prisma.like.deleteMany();
   await prisma.post.deleteMany();
   await prisma.session.deleteMany();

@@ -44,6 +44,11 @@ describe("seed (GEN-03, D-027)", () => {
     expect(new Set(followers.map((u) => u._count.followers)).size).toBeGreaterThan(1);
   });
 
+  it("gives gustavo.levin some saved Posts (D-033)", async () => {
+    const gustavo = await prisma.user.findUniqueOrThrow({ where: { username: "gustavo.levin" } });
+    expect(await prisma.save.count({ where: { userId: gustavo.id } })).toBeGreaterThan(0);
+  });
+
   it("creates Users who can log in with the documented demo password", async () => {
     const res = await request(createApp())
       .post("/auth/login")

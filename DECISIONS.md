@@ -499,3 +499,19 @@ A "special character" is anything that isn't a letter, digit or whitespace.
 - The bottom navigation is the natural way into Profile, and every later screen needs it.
 - Reusing the Feed's Post shape and paging means one serializer and one set of tests.
 - English number style matches the Feed. The mockup's "12,8k" is European style.
+
+---
+
+## D-033 · Save (bookmark) a Post
+
+**Date:** 2026-11-25 · **Status:** accepted (follows the Like pattern, D-026 and D-028)
+
+**Choice:**
+- **`Save`:** primary key `(userId, postId)`, plus a `createdAt` time, with an index on `postId`. Every Post list carries `savedByMe`, computed from the rows for the viewer.
+- **Endpoints:** `PUT` / `DELETE /posts/:id/save` are idempotent and return `{ savedByMe }`. An unknown Post gets 404.
+- **The Save button** on Post cards is now live. It updates instantly and rolls back if the request fails, the same as Like.
+- **Saves are private,** so the Feed card shows no Save count. That matches the mockup, which has no number next to the bookmark.
+- **Not built yet:** a "Saved Posts" list, since the brief doesn't ask for one, and the Save count on the Video viewer (screen 4), which comes with that screen.
+- **Seed:** Gustavo has a few Saves, so filled bookmarks show when logging in as him.
+
+**Why:** It's the same shape as Like (one row per User per Post), so it gets the same database guarantee against duplicates, the same computed state and the same idempotent endpoints. Keeping Saves private follows from what a bookmark is: a note to yourself.

@@ -36,6 +36,7 @@ function post(overrides: Partial<FeedPost> & { id: string }): FeedPost {
     author: gusAuthor,
     likeCount: 0,
     likedByMe: false,
+    savedByMe: false,
     ...overrides,
   };
 }

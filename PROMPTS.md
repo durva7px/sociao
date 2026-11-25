@@ -235,3 +235,27 @@ Every prompt given to the AI (Claude Code, Opus 5.5) while building sociao, in o
 > Yes, commit both
 
 **Response:** Made two commits: the server side of Profile (Follow model, Profile and Follow API, seed Follows) with the docs, then the client (Profile screen, Follow toggle, bottom navigation). `.claude/` stays out. Not pushed.
+
+---
+
+## 28 · Push
+
+> Yes, push
+
+**Response:** Pushed `main` (8 commits) to `origin` on GitHub. This entry is committed with the next change.
+
+---
+
+## 29 · Next feature: Save / bookmark
+
+> Save ／ bookmark
+
+**Response:** Built Save using the Like pattern agreed in round 4 (Q3), recorded as D-033. Test-first on the server: the `Save` model, `savedByMe` on every Post list, and `PUT` / `DELETE /posts/:id/save`. Then test-first on the client: the Save button toggles instantly and rolls back if the request fails. Checked it in the browser. Not committed.
+
+---
+
+## 30 · Approve commit
+
+> Yes, commit
+
+**Response:** Committed Save / bookmark as one commit, together with prompt log entries 28 to 30. `.claude/` stays out. Not pushed.

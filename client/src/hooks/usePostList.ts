@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { likePost, unlikePost, type FeedPage, type FeedPost } from "../api/feed";
+import { likePost, savePost, unlikePost, unsavePost, type FeedPage, type FeedPost } from "../api/feed";
 
 export type LoadState = "loading" | "error" | "ready";
 
 const LIKE_ERROR = "Couldn't update your like. Please try again.";
+const SAVE_ERROR = "Couldn't save this post. Please try again.";
 
 /**
- * A paged list of Posts with Likes: used by the Feed and by a Profile's Post and Video tabs.
+ * A paged list of Posts with Likes and Saves: used by the Feed and by a Profile's Post and Video tabs.
  * `fetchPage` loads one page; it's called again from scratch whenever `key` changes.
  */
 export function usePostList(fetchPage: (cursor?: string) => Promise<FeedPage>, key: string) {
@@ -15,8 +16,8 @@ export function usePostList(fetchPage: (cursor?: string) => Promise<FeedPage>, k
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [moreError, setMoreError] = useState(false);
-  const [likeErrors, setLikeErrors] = useState<Record<string, string>>({});
-  const pendingLikes = useRef(new Set<string>()); // Posts whose Like is still being saved
+  const [errors, setErrors] = useState<Record<string, string>>({}); // last failed Like or Save, per Post
+  const pending = useRef(new Set<string>()); // "like:<id>" / "save:<id>" requests still in flight
 
   // Always call the latest fetchPage without making it a dependency (callers pass inline functions).
   const fetchRef = useRef(fetchPage);
@@ -56,32 +57,61 @@ export function usePostList(fetchPage: (cursor?: string) => Promise<FeedPage>, k
     setLoadingMore(false);
   }, [nextCursor, loadingMore]);
 
-  /** Updates one Post's Like fields in place. */
-  const setLike = (id: string, likeCount: number, likedByMe: boolean) =>
-    setPosts((current) => current.map((p) => (p.id === id ? { ...p, likeCount, likedByMe } : p)));
+  /** Updates some fields of one Post in place. */
+  const patch = (id: string, fields: Partial<FeedPost>) =>
+    setPosts((current) => current.map((p) => (p.id === id ? { ...p, ...fields } : p)));
 
-  // Instant update, then the server's numbers; rolled back if the request fails (D-028).
-  async function toggleLike(post: FeedPost) {
-    if (pendingLikes.current.has(post.id)) return; // ignore extra taps until this one is saved
-    pendingLikes.current.add(post.id);
-
-    const before = { likeCount: post.likeCount, likedByMe: post.likedByMe };
-    const liking = !post.likedByMe;
-    setLike(post.id, before.likeCount + (liking ? 1 : -1), liking);
-    setLikeErrors(({ [post.id]: _cleared, ...rest }) => rest);
-
+  /**
+   * Instant update, then the server's answer; rolled back if the request fails (D-028, D-033).
+   * Extra taps are ignored until the first request finishes.
+   */
+  async function optimistic(
+    key: string,
+    id: string,
+    next: Partial<FeedPost>,
+    before: Partial<FeedPost>,
+    request: () => Promise<Partial<FeedPost>>,
+    errorMessage: string,
+  ) {
+    if (pending.current.has(key)) return;
+    pending.current.add(key);
+    patch(id, next);
+    setErrors(({ [id]: _cleared, ...rest }) => rest);
     try {
-      const saved = liking ? await likePost(post.id) : await unlikePost(post.id);
-      setLike(post.id, saved.likeCount, saved.likedByMe);
+      patch(id, await request());
     } catch {
-      setLike(post.id, before.likeCount, before.likedByMe);
-      setLikeErrors((errors) => ({ ...errors, [post.id]: LIKE_ERROR }));
+      patch(id, before);
+      setErrors((current) => ({ ...current, [id]: errorMessage }));
     } finally {
-      pendingLikes.current.delete(post.id);
+      pending.current.delete(key);
     }
   }
 
-  return { state, posts, nextCursor, loadingMore, moreError, likeErrors, reload, loadMore, toggleLike };
+  function toggleLike(post: FeedPost) {
+    const liking = !post.likedByMe;
+    return optimistic(
+      `like:${post.id}`,
+      post.id,
+      { likedByMe: liking, likeCount: post.likeCount + (liking ? 1 : -1) },
+      { likedByMe: post.likedByMe, likeCount: post.likeCount },
+      () => (liking ? likePost(post.id) : unlikePost(post.id)),
+      LIKE_ERROR,
+    );
+  }
+
+  function toggleSave(post: FeedPost) {
+    const saving = !post.savedByMe;
+    return optimistic(
+      `save:${post.id}`,
+      post.id,
+      { savedByMe: saving },
+      { savedByMe: post.savedByMe },
+      () => (saving ? savePost(post.id) : unsavePost(post.id)),
+      SAVE_ERROR,
+    );
+  }
+
+  return { state, posts, nextCursor, loadingMore, moreError, errors, reload, loadMore, toggleLike, toggleSave };
 }
 
 export type PostList = ReturnType<typeof usePostList>;

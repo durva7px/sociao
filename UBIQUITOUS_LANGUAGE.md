@@ -59,7 +59,7 @@ The shared vocabulary for sociao. We use these words with these meanings in conv
 | **Choose Username** | Step 2 of Sign up. The User picks a Username suggestion or types one, and the User is created. | username page | ✅ |
 | **Log in / Log out** | Start or end a Session. The UI also says "Sign Out". | sign in (the mockup's "Sign in" link actually goes to sign-up) | 🟡 |
 | **Session** | A database row proving requests come from a signed-in User. Its id travels in an `httpOnly` cookie. Log out deletes it. | token, JWT | ✅ |
-| **Password rules** | At least 8 characters with an uppercase letter, a lowercase letter, a digit and a special character, and not containing the User's Username, email or Name. | password policy | ✅ |
+| **Password rules** | At least 8 characters with an uppercase letter, a lowercase letter, a digit and a special character, not containing the User's Username or a 3+ letter Name word, and not exactly equal to their email (D-019). | password policy | ✅ |
 
 ## Decisions log
 

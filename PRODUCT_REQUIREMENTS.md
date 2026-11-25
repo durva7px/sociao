@@ -3,7 +3,7 @@
 The requirements we build against. They come from the assignment brief, plus our decisions where the brief is silent or the mockups are unclear. The words used are defined in [UBIQUITOUS_LANGUAGE.md](UBIQUITOUS_LANGUAGE.md), and the reasoning behind choices is in [DECISIONS.md](DECISIONS.md).
 
 **Priority:** `MUST` · `SHOULD` · `BONUS` (from the brief's ordering)
-**Status:** ⬜ not started · 🧪 tests written · 🔨 in progress · ✅ done · ❓ open question · ⏸ deferred
+**Status:** ⬜ not started · 🧪 tests written · 🔨 in progress (e.g. the server side is done but the screen isn't) · ✅ done · ❓ open question · ⏸ deferred
 
 Each requirement has an id (e.g. `AUTH-03`) so tests, commits and conversations can point at it.
 
@@ -26,11 +26,11 @@ Each requirement has an id (e.g. `AUTH-03`) so tests, commits and conversations 
 | -- | ----------- | -------- | ------ |
 | AUTH-01 | Sign up is two steps: (1) Create Account collects Name, email and password; (2) Choose Username. The User is created only when step 2 is submitted (D-011) | MUST | ⬜ |
 | AUTH-01a | Leaving before step 2 stores nothing in the database | MUST | ⬜ |
-| AUTH-02 | Email must be in a valid format (`local@domain.tld`), and is trimmed and lowercased (D-014) | MUST | ⬜ |
-| AUTH-03 | Email must be unique. A duplicate gets "An account with this email already exists", checked at step 1 and again at step 2 | MUST | ⬜ |
-| AUTH-03a | Name is 1 to 50 characters after trimming (D-014) | MUST | ⬜ |
-| AUTH-04 | Password is at least 8 characters, with at least one uppercase letter, one lowercase letter, one digit and one special character (anything that isn't a letter, digit or whitespace) | MUST | ⬜ |
-| AUTH-05 | Ignoring case, password must not contain the Username, the email's local part, or any Name word of 3+ letters (D-013) | MUST | ⬜ |
+| AUTH-02 | Email must be in a valid format (`local@domain.tld`), and is trimmed and lowercased (D-014) | MUST | 🔨 |
+| AUTH-03 | Email must be unique. A duplicate gets "An account with this email already exists", checked at step 1 and again at step 2 | MUST | 🔨 |
+| AUTH-03a | Name is 1 to 50 characters after trimming (D-014) | MUST | 🔨 |
+| AUTH-04 | Password is at least 8 characters, with at least one uppercase letter, one lowercase letter, one digit and one special character (anything that isn't a letter, digit or whitespace) | MUST | 🔨 |
+| AUTH-05 | Ignoring case, the password must not contain the Username or any Name word of 3+ letters, and must not exactly equal the email (D-013, D-019) | MUST | 🔨 |
 | AUTH-06 | Password is stored only as a hash, never as plain text | MUST | ⬜ |
 | AUTH-07 | Username is mandatory and set by the User during sign up | MUST | ⬜ |
 | AUTH-08 | Username is 3 to 30 characters of lowercase letters, digits, `_` and `.`. It starts with a letter or digit, doesn't end with `.`, and has no `..` (D-012) | MUST | ⬜ |

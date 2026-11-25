@@ -258,3 +258,29 @@ A "special character" is anything that isn't a letter, digit or whitespace.
 - Prisma 7 requires the URL in its config file and a driver adapter in the client.
 
 **Known issue:** `npm audit` reports a high-severity ReDoS in `effect`, which comes in through `@prisma/config`. It's a dependency of the Prisma CLI (a development tool), not of the running app, and the only "fix" offered is downgrading to Prisma 6. We accept it and will check again before submitting.
+
+---
+
+## D-019 · Password vs email: an exact match only
+
+**Date:** 2026-11-25 · **Status:** accepted (replaces the email part of D-013)
+
+**Choice:** The "doesn't contain" rule applies only to the **Name** (words of 3+ letters) and the **Username**, ignoring case. For the email, the password is rejected only if it **exactly equals** the email address. Case and surrounding spaces are ignored, the same normalisation as D-014.
+
+**Why:** It's the developer's call. Checking for the email's local part anywhere inside the password raised edge cases (a short local part like `an@` would block too many passwords) for little security gain. Using the email itself as the password is the case that actually matters.
+
+---
+
+## D-020 · Postgres on host port 5433; Prisma's new `prisma-client` generator
+
+**Date:** 2026-11-25 · **Status:** accepted (amends D-017 and D-018)
+
+**Choice:**
+- **Port:** the Docker Postgres is exposed on host port **5433**.
+- **Prisma client:** generated with the Prisma 7 `prisma-client` generator into `server/src/generated/prisma` (gitignored). `npm install` regenerates it through `postinstall`.
+- **Tests:** `server/.env.test` points at `sociao_test` and is committed, because it holds only the local Docker credentials. The test setup refuses to run against any other database, and applies migrations before the suite starts.
+
+**Why:**
+- **Port:** a native Postgres on the development machine already listens on 5432. Prisma reached it instead of the container and failed with `P1010: access denied`. Moving the container is safer than touching the local install, and it avoids the same clash on reviewers' machines.
+- **Generator:** the older `prisma-client-js` generator couldn't resolve `@prisma/client` in this npm-workspaces layout. The newer generator writes the client into our own source tree, so imports are explicit and don't depend on how packages are hoisted.
+- **Tests:** a guarded, separate test database means tests can wipe tables freely without ever touching dev data.

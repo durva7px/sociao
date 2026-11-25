@@ -75,3 +75,27 @@ Every prompt given to the AI (Claude Code, Opus 5.5) while building sociao, in o
 > Looks good. Commit
 
 **Response:** Made two commits: the docs, then the workspace scaffold. Not pushed.
+
+---
+
+## 8 · Start Create Account (step 1), test-first
+
+> Yes, write the tests
+
+**Response:** Wrote failing tests only (the red step): unit tests for the Name, email and Password rules, and API tests for `POST /auth/signup/check`. Ran them to confirm they fail. Proposed the `User` model and test-database setup needed to make them pass. No implementation yet.
+
+---
+
+## 9 · Change the password identity rule; approve schema
+
+> For the password just apply the rule for the name and user name. The password just shouldn't exactly match the email. Rest all is fine
+
+**Response:** Recorded D-019 (replacing the email part of D-013) and updated AUTH-05 and the tests. Then did the green step: added the `User` and `Session` models with a first migration, set up the separate test database, and implemented the Create Account rules and `POST /auth/signup/check`. Not committed.
+
+---
+
+## 10 · Approve commit
+
+> Yes, commit
+
+**Response:** Committed Create Account (step 1) as one commit. Not pushed.

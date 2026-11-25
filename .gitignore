@@ -6,3 +6,7 @@ coverage/
 !.env.example
 *.log
 .DS_Store
+# Prisma client is generated from schema.prisma (npm install runs it)
+server/src/generated/
+# Test DB URL holds only the local Docker credentials, so it is committed
+!server/.env.test

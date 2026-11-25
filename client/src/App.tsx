@@ -4,7 +4,7 @@ import { AuthProvider, useAuth } from "./auth/AuthContext";
 import { SignupDraftProvider } from "./auth/SignupDraft";
 import { ChooseUsernameScreen } from "./screens/ChooseUsernameScreen";
 import { CreateAccountScreen } from "./screens/CreateAccountScreen";
-import { HomeScreen } from "./screens/HomeScreen";
+import { FeedScreen } from "./screens/FeedScreen";
 import { LoginScreen } from "./screens/LoginScreen";
 import styles from "./screens/Auth.module.css";
 
@@ -45,7 +45,7 @@ function AppRoutes() {
       <Route path="/login" element={<LoggedOutOnly><LoginScreen /></LoggedOutOnly>} />
       <Route path="/signup" element={<LoggedOutOnly><CreateAccountScreen /></LoggedOutOnly>} />
       <Route path="/signup/username" element={<LoggedOutOnly><ChooseUsernameScreen /></LoggedOutOnly>} />
-      <Route path="/" element={<LoggedInOnly><HomeScreen /></LoggedInOnly>} />
+      <Route path="/" element={<LoggedInOnly><FeedScreen /></LoggedInOnly>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

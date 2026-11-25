@@ -1,13 +1,16 @@
 import { screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as api from "../api/auth";
+import * as feedApi from "../api/feed";
 import { gustavo, renderApp } from "../test/render-app";
 
 // GEN-06: logged-out Users only reach Log in and Sign up. Plus Log out (AUTH-26).
 vi.mock("../api/auth");
+vi.mock("../api/feed");
 
 beforeEach(() => {
   vi.resetAllMocks();
+  vi.mocked(feedApi.getFeed).mockResolvedValue({ posts: [], nextCursor: null });
 });
 
 describe("Who can see what (GEN-06)", () => {
